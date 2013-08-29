@@ -1046,7 +1046,7 @@ void GL2Encoder::s_glBindTexture(void* self, GLenum target, GLuint texture)
         }
     }
 
-    if (target == priorityTarget) {
+    if ((target == priorityTarget) || (target == GL_TEXTURE_2D)) {
         ctx->m_glBindTexture_enc(ctx, GL_TEXTURE_2D, texture);
     }
 }
