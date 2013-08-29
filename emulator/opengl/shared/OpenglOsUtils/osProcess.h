@@ -18,6 +18,11 @@
 
 #ifdef _WIN32
 #include <windows.h>
+typedef int pthread_t;
+#endif
+
+#ifndef _WIN32
+#include <pthread.h>
 #endif
 
 namespace osUtils {
@@ -52,7 +57,7 @@ private:
 };
 
 int ProcessGetPID();
-int ProcessGetTID();
+pthread_t ProcessGetTID();
 bool ProcessGetName(char *p_outName, int p_outNameLen);
 int KillProcess(int pid, bool wait);
 bool isProcessRunning(int pid);

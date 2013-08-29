@@ -111,7 +111,7 @@ int ProcessGetPID()
     return GetCurrentProcessId();
 }
 
-int ProcessGetTID()
+pthread_t ProcessGetTID()
 {
     return GetCurrentThreadId();
 }

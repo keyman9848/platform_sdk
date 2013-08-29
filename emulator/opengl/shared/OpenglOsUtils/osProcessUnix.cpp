@@ -183,7 +183,7 @@ int ProcessGetPID()
     return getpid();
 }
 
-int ProcessGetTID()
+pthread_t ProcessGetTID()
 {
     return pthread_self();
 }
