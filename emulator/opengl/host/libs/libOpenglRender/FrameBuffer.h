@@ -101,8 +101,10 @@ class FrameBuffer
     static HandleType s_nextHandle;
     int m_x;
     int m_y;
-    int m_width;
-    int m_height;
+    int m_width; // Android width
+    int m_height; // Android height
+    int m_FBwidth; // FB width
+    int m_FBheight; // FB height
     android::Mutex m_lock;
     FBNativeWindowType m_nativeWindow;
     FrameBufferCaps m_caps;

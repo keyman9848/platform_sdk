@@ -362,6 +362,8 @@ FrameBuffer::FrameBuffer(int p_width, int p_height,
     m_y(0),
     m_width(p_width),
     m_height(p_height),
+    m_FBwidth(p_width),
+    m_FBheight(p_height),
     m_eglDisplay(EGL_NO_DISPLAY),
     m_eglSurface(EGL_NO_SURFACE),
     m_eglContext(EGL_NO_CONTEXT),
@@ -388,9 +390,9 @@ void FrameBuffer::setDisplayRotation(float zRot)
     int rot = (int)(zRot - m_zRot);
 
     if (rot == 90 || rot == -90) {
-        int tmp = m_width;
-        m_width = m_height;
-        m_height = tmp;
+        int tmp = m_FBwidth;
+        m_FBwidth = m_FBheight;
+        m_FBheight = tmp;
     }
     m_zRot = zRot;
 
@@ -436,7 +438,7 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                     //
                     // Increase space for the onPost framebuffer image
                     //
-                    if (fb->m_fbImage && ((p_width*p_height) > (fb->m_width*fb->m_height))) {
+                    if (fb->m_fbImage && ((p_width*p_height) > (fb->m_FBwidth*fb->m_FBheight))) {
                         // need more space
                         fb->m_fbImage = (unsigned char*)realloc(fb->m_fbImage, 4 * p_width * p_height);
                         if (!fb->m_fbImage) {
@@ -452,8 +454,8 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                     fb->m_zRot = zRot;
                     fb->post( fb->m_lastPostedColorBuffer, false );
 
-                    fb->m_width = p_width;
-                    fb->m_height = p_height;
+                    fb->m_FBwidth = p_width;
+                    fb->m_FBheight = p_height;
 
                     fb->unbind_locked();
                     success = true;
@@ -853,9 +855,9 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
             // Send framebuffer (without FPS overlay) to callback
             //
             if (m_onPost) {
-                s_gl.glReadPixels(m_x, m_y, m_width, m_height,
+                s_gl.glReadPixels(m_x, m_y, m_FBwidth, m_FBheight,
                                   GL_BGRA_EXT/*GL_RGBA*/, GL_UNSIGNED_BYTE, m_fbImage);
-                m_onPost(m_onPostContext, m_width, m_height, -1,
+                m_onPost(m_onPostContext, m_FBwidth, m_FBheight, -1,
                          GL_BGRA_EXT/*GL_RGBA*/, GL_UNSIGNED_BYTE, m_fbImage);
             }
 
@@ -912,8 +914,8 @@ void FrameBuffer::setViewport(int x0, int y0, int width, int height)
             s_gl.glViewport(x0, y0, width, height);
             s_theFrameBuffer->m_x = x0;
             s_theFrameBuffer->m_y = y0;
-            s_theFrameBuffer->m_width = width;
-            s_theFrameBuffer->m_height =  height;
+            s_theFrameBuffer->m_FBwidth = width;
+            s_theFrameBuffer->m_FBheight = height;
             s_theFrameBuffer->unbind_locked();
         }
 
