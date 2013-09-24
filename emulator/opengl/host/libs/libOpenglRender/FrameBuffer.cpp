@@ -936,6 +936,7 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
 
     if (s_theFrameBuffer) {
 
+        s_theFrameBuffer->m_lock.lock();
         s_theFrameBuffer->bind_locked();
 
         s_theFrameBuffer->m_onPost = onPost;
