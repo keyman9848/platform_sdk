@@ -135,5 +135,6 @@ class FrameBuffer
     OnPostFn m_onPost;
     void* m_onPostContext;
     unsigned char* m_fbImage;
+    GLuint m_framebuffer;
 };
 #endif

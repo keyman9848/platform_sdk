@@ -267,9 +267,9 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
 
     if (eglExtensions && has_gl_oes_image) {
         fb->m_caps.has_eglimage_texture_2d =
-            strstr(eglExtensions, "EGL_KHR_gl_texture_2D_image") != NULL;
+                strstr(eglExtensions, "EGL_KHR_gl_texture_2D_image") != NULL;
         fb->m_caps.has_eglimage_renderbuffer =
-            strstr(eglExtensions, "EGL_KHR_gl_renderbuffer_image") != NULL;
+                strstr(eglExtensions, "EGL_KHR_gl_renderbuffer_image") != NULL;
     }
     else {
         fb->m_caps.has_eglimage_texture_2d = false;
@@ -344,6 +344,17 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
             delete fb;
             return false;
         }
+
+        // Create framebuffer of fixed size
+        GLuint renderbuffer;
+        s_gl.glGenRenderbuffersOES(1, &renderbuffer);
+        s_gl.glBindRenderbufferOES(GL_RENDERBUFFER_OES, renderbuffer);
+        s_gl.glRenderbufferStorageOES(GL_RENDERBUFFER_OES, GL_RGBA8_OES, width, height);
+
+        s_gl.glGenFramebuffersOES(1, &fb->m_framebuffer);
+        s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, fb->m_framebuffer);
+        s_gl.glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES,
+                                          GL_RENDERBUFFER_OES, renderbuffer);
     }
 
     // release the FB context
@@ -380,7 +391,8 @@ FrameBuffer::FrameBuffer(int p_width, int p_height,
     m_statsStartTime(0LL),
     m_onPost(onPost),
     m_onPostContext(onPostContext),
-    m_fbImage(NULL)
+    m_fbImage(NULL),
+    m_framebuffer(0)
 {
     m_fpsStats = getenv("SHOW_FPS_STATS") != NULL;
 }
@@ -434,19 +446,6 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                     fb->m_subWin = NULL;
                 }
                 else if (fb->bindSubwin_locked()) {
-
-                    //
-                    // Increase space for the onPost framebuffer image
-                    //
-                    if (fb->m_fbImage && ((p_width*p_height) > (fb->m_FBwidth*fb->m_FBheight))) {
-                        // need more space
-                        fb->m_fbImage = (unsigned char*)realloc(fb->m_fbImage, 4 * p_width * p_height);
-                        if (!fb->m_fbImage) {
-                            ERR("Failed to allocate space for onPost framebuffer image\n");
-                            success = false;
-                        }
-                    }
-
                     // Subwin creation was successfull,
                     // update viewport and z rotation and draw
                     // the last posted color buffer.
@@ -843,6 +842,24 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
         // render the color buffer to the window
         //
         s_gl.glPushMatrix();
+
+        //
+        // Send framebuffer to callback
+        //
+        if (m_onPost) {
+            s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, m_framebuffer);
+            s_gl.glViewport(0, 0, m_width, m_height);
+            ret = (*c).second.cb->post();
+            if (ret) {
+                s_gl.glReadPixels(0, 0, m_width, m_height,
+                                  GL_BGRA_EXT, GL_UNSIGNED_BYTE, m_fbImage);
+                m_onPost(m_onPostContext, m_width, m_height, -1,
+                         GL_BGRA_EXT, GL_UNSIGNED_BYTE, m_fbImage);
+            }
+            s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
+            s_gl.glViewport(0, 0, m_FBwidth, m_FBheight);
+        }
+
         s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
         if (m_zRot != 0.0f) {
             s_gl.glClear(GL_COLOR_BUFFER_BIT);
@@ -851,16 +868,6 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
         s_gl.glPopMatrix();
 
         if (ret) {
-            //
-            // Send framebuffer (without FPS overlay) to callback
-            //
-            if (m_onPost) {
-                s_gl.glReadPixels(m_x, m_y, m_FBwidth, m_FBheight,
-                                  GL_BGRA_EXT/*GL_RGBA*/, GL_UNSIGNED_BYTE, m_fbImage);
-                m_onPost(m_onPostContext, m_FBwidth, m_FBheight, -1,
-                         GL_BGRA_EXT/*GL_RGBA*/, GL_UNSIGNED_BYTE, m_fbImage);
-            }
-
             //
             // output FPS statistics
             //
@@ -919,7 +926,7 @@ void FrameBuffer::setViewport(int x0, int y0, int width, int height)
             s_theFrameBuffer->unbind_locked();
         }
 
-        s_theFrameBuffer-> m_lock.unlock();
+        s_theFrameBuffer->unbind_locked();
     }
 }
 
@@ -929,7 +936,7 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
 
     if (s_theFrameBuffer) {
 
-        s_theFrameBuffer->m_lock.lock();
+        s_theFrameBuffer->bind_locked();
 
         s_theFrameBuffer->m_onPost = onPost;
         s_theFrameBuffer->m_onPostContext = onPostContext;
@@ -940,6 +947,18 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
                 ERR("Failed to allocate space for onPost framebuffer image\n");
                 success = false;
             }
+            // Create framebuffer of fixed size
+            GLuint renderbuffer;
+            s_gl.glGenRenderbuffersOES(1, &renderbuffer);
+            s_gl.glBindRenderbufferOES(GL_RENDERBUFFER_OES, renderbuffer);
+            s_gl.glRenderbufferStorageOES(GL_RENDERBUFFER_OES, GL_RGBA8_OES,
+                                          s_theFrameBuffer->m_width, s_theFrameBuffer->m_height);
+
+            s_gl.glGenFramebuffersOES(1, &s_theFrameBuffer->m_framebuffer);
+            s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, s_theFrameBuffer->m_framebuffer);
+            s_gl.glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES,
+                                              GL_RENDERBUFFER_OES, renderbuffer);
+            s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
         }
         s_theFrameBuffer-> m_lock.unlock();
     }
