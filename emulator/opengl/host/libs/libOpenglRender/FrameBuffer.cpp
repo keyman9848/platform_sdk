@@ -961,6 +961,7 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
                                               GL_RENDERBUFFER_OES, renderbuffer);
             s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
         }
+        s_theFrameBuffer->unbind_locked();
         s_theFrameBuffer-> m_lock.unlock();
     }
 
