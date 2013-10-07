@@ -360,6 +360,9 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     // release the FB context
     fb->unbind_locked();
 
+    // set T0
+    fb->m_statsStartTime = GetCurrentTimeMS() + 7000; // 7 seconds
+
     //
     // Keep the singleton framebuffer pointer
     //
@@ -392,7 +395,9 @@ FrameBuffer::FrameBuffer(int p_width, int p_height,
     m_onPost(onPost),
     m_onPostContext(onPostContext),
     m_fbImage(NULL),
-    m_framebuffer(0)
+    m_framebuffer(0),
+    m_textLogo(0),
+    m_textStartScreeen(0)
 {
     m_fpsStats = getenv("SHOW_FPS_STATS") != NULL;
 }
@@ -849,7 +854,11 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
         if (m_onPost) {
             s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, m_framebuffer);
             s_gl.glViewport(0, 0, m_width, m_height);
+
             ret = (*c).second.cb->post();
+            if(m_textLogo)
+                displayLogo();
+
             if (ret) {
                 s_gl.glReadPixels(0, 0, m_width, m_height,
                                   GL_BGRA_EXT, GL_UNSIGNED_BYTE, m_fbImage);
@@ -864,24 +873,24 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
         if (m_zRot != 0.0f) {
             s_gl.glClear(GL_COLOR_BUFFER_BIT);
         }
-        ret = (*c).second.cb->post();
+
+        if(m_textStartScreeen && (GetCurrentTimeMS() <= m_statsStartTime)) {
+            displayStartScreen();
+            s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
+        }
+        else {
+            ret = (*c).second.cb->post();
+
+            s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
+
+            if(m_textLogo) {
+                displayLogo();
+            }
+        }
+
         s_gl.glPopMatrix();
 
         if (ret) {
-            //
-            // output FPS statistics
-            //
-            if (m_fpsStats) {
-                long long currTime = GetCurrentTimeMS();
-                m_statsNumFrames++;
-                if (currTime - m_statsStartTime >= 1000) {
-                    float dt = (float)(currTime - m_statsStartTime) / 1000.0f;
-                    printf("FPS: %5.3f\n", (float)m_statsNumFrames / dt);
-                    m_statsStartTime = currTime;
-                    m_statsNumFrames = 0;
-                }
-            }
-
             s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
         }
 
@@ -967,3 +976,92 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
 
     return success;
 }
+
+void FrameBuffer::setTexture(char* data, int width, int height, GLuint* texture)
+{
+    if (s_theFrameBuffer) {
+
+        s_theFrameBuffer->m_lock.lock();
+        s_theFrameBuffer->bind_locked();
+
+
+        if(texture) {
+            s_gl.glDeleteTextures(1, texture);
+            *texture = 0;
+        }
+
+        if(data) {
+            s_gl.glGenTextures(1, texture);
+            s_gl.glBindTexture(GL_TEXTURE_2D, *texture);
+            s_gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                              0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            s_gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        }
+
+        s_theFrameBuffer-> m_lock.unlock();
+        s_theFrameBuffer-> m_lock.unlock();
+    }
+}
+
+void FrameBuffer::displayTexture(GLuint text, int width, int height)
+{
+    GLfloat verts[] = { -1.0f, -1.0f, 0.0f,
+                         -1.0f, +1.0f, 0.0f,
+                         +1.0f, -1.0f, 0.0f,
+                         +1.0f, +1.0f, 0.0f };
+
+    GLfloat tcoords[] = { 0.0f, 1.0f,
+                           0.0f, 0.0f,
+                           1.0f, 1.0f,
+                           1.0f, 0.0f };
+
+    s_gl.glViewport(0, 0, width, height);
+
+    s_gl.glEnable(GL_BLEND);
+    s_gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    s_gl.glBindTexture(GL_TEXTURE_2D, m_textLogo);
+    s_gl.glEnable(GL_TEXTURE_2D);
+    s_gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+    s_gl.glClientActiveTexture(GL_TEXTURE0);
+    s_gl.glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    s_gl.glTexCoordPointer(2, GL_FLOAT, 0, tcoords);
+
+    s_gl.glEnableClientState(GL_VERTEX_ARRAY);
+    s_gl.glVertexPointer(3, GL_FLOAT, 0, verts);
+    s_gl.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    s_gl.glViewport(m_x, m_y, m_FBwidth, m_FBheight);
+    s_gl.glDisable(GL_BLEND);
+}
+
+void FrameBuffer::displayLogo()
+{
+    displayTexture(m_textLogo, 192, 64);
+}
+
+void FrameBuffer::displayStartScreen()
+{
+    displayTexture(m_textStartScreeen, m_FBwidth, m_FBheight);
+}
+
+void FrameBuffer::setLogo(char* logo, int width, int height)
+{
+    if (s_theFrameBuffer) {
+        setTexture(logo, width, height, &s_theFrameBuffer->m_textLogo);
+    }
+}
+
+void FrameBuffer::setStartScreen(char* image, int width, int height)
+{
+    if (s_theFrameBuffer) {
+        setTexture(image, width, height, &s_theFrameBuffer->m_textStartScreeen);
+    }
+}
+

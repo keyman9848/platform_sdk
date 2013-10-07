@@ -2,24 +2,26 @@
 #include "RenderServer.h"
 
 extern "C" {
-    int AndroVM_initLibrary();
-    int AndroVM_FrameBuffer_initialize(int w, int h);
-    int AndroVM_FrameBuffer_setupSubWindow(void *id, int w, int h, float zrot);
-    int AndroVM_FrameBuffer_removeSubWindow();
-    void *AndroVM_FrameBuffer_getSubWindow();
-    int AndroVM_RenderServer_create(int p);
-    int AndroVM_RenderServer_Main();
-    int AndroVM_RenderServer_start();
-    int AndroVM_setStreamMode(int);
-    int AndroVM_setVMIP(char *);
-    void AndroVM_setOpenGLDisplayRotation(float);
-    bool AndroVM_initOpenGLRenderer(int, int, int, OnPostFn, void*);
-    void AndroVM_setCallbackRotation(void (* fn)(float));
-    void AndroVM_repaintOpenGLDisplay();
-    void AndroVM_setDPI(int);
-    void AndroVM_setViewport(int x0, int y0, int width, int height);
-    float AndroVM_getDisplayRotation();
-    bool AndroVM_registerOGLCallback(OnPostFn, void*);
+int AndroVM_initLibrary();
+int AndroVM_FrameBuffer_initialize(int w, int h);
+int AndroVM_FrameBuffer_setupSubWindow(void *id, int w, int h, float zrot);
+int AndroVM_FrameBuffer_removeSubWindow();
+void *AndroVM_FrameBuffer_getSubWindow();
+int AndroVM_RenderServer_create(int p);
+int AndroVM_RenderServer_Main();
+int AndroVM_RenderServer_start();
+int AndroVM_setStreamMode(int);
+int AndroVM_setVMIP(char *);
+void AndroVM_setOpenGLDisplayRotation(float);
+bool AndroVM_initOpenGLRenderer(int, int, int, OnPostFn, void*);
+void AndroVM_setCallbackRotation(void (* fn)(float));
+void AndroVM_repaintOpenGLDisplay();
+void AndroVM_setDPI(int);
+void AndroVM_setViewport(int x0, int y0, int width, int height);
+float AndroVM_getDisplayRotation();
+bool AndroVM_registerOGLCallback(OnPostFn, void*);
+void AndroVM_setLogo(char* logo, int width, int height);
+void AndroVM_setStartScreen(char* img, int width, int height);
 }
 
 int AndroVM_initLibrary()
@@ -114,4 +116,14 @@ void AndroVM_setDPI(int d) {
 void AndroVM_setViewport(int x0, int y0, int width, int height)
 {
     FrameBuffer::setViewport(x0, y0, width, height);
+}
+
+void AndroVM_setLogo(char* logo, int width, int height)
+{
+    FrameBuffer::setLogo(logo, width, height);
+}
+
+void AndroVM_setStartScreen(char* logo, int width, int height)
+{
+    FrameBuffer::setStartScreen(logo, width, height);
 }

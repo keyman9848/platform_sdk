@@ -88,6 +88,8 @@ class FrameBuffer
     void setDisplayRotation(float zRot);
 
     static void setViewport(int x0, int y0, int width, int height);
+    static void setLogo(char* logo, int width, int height);
+    static void setStartScreen(char* logo, int width, int height);
 
  private:
     FrameBuffer(int p_width, int p_height, OnPostFn onPost, void* onPostContext);
@@ -95,6 +97,10 @@ class FrameBuffer
     HandleType genHandle();
     bool bindSubwin_locked();
     void initGLState();
+    void displayLogo();
+    void displayStartScreen();
+    void displayTexture(GLuint text, int width, int height);
+    void static setTexture(char* data, int width, int height, GLuint* text);
 
  private:
     static FrameBuffer *s_theFrameBuffer;
@@ -136,5 +142,8 @@ class FrameBuffer
     void* m_onPostContext;
     unsigned char* m_fbImage;
     GLuint m_framebuffer;
+
+    GLuint m_textLogo;
+    GLuint m_textStartScreeen;
 };
 #endif
