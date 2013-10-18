@@ -397,7 +397,8 @@ FrameBuffer::FrameBuffer(int p_width, int p_height,
     m_fbImage(NULL),
     m_framebuffer(0),
     m_textLogo(0),
-    m_textStartScreeen(0)
+    m_textStartScreeen(0),
+    m_windowHighlight(false)
 {
     m_fpsStats = getenv("SHOW_FPS_STATS") != NULL;
 }
@@ -886,6 +887,10 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
             if(m_textLogo) {
                 displayLogo();
             }
+
+	    if(m_windowHighlight) {
+                displayWindowHighlight();
+            }
         }
 
         s_gl.glPopMatrix();
@@ -1063,5 +1068,38 @@ void FrameBuffer::setStartScreen(char* image, int width, int height)
     if (s_theFrameBuffer) {
         setTexture(image, width, height, &s_theFrameBuffer->m_textStartScreeen);
     }
+}
+
+void FrameBuffer::setWindowHighlight(bool value)
+{
+    if (s_theFrameBuffer) {
+        if (s_theFrameBuffer->m_windowHighlight != value)
+	    s_theFrameBuffer->m_windowHighlight = value;    
+    }
+}
+
+void FrameBuffer::displayWindowHighlight()
+{
+    GLfloat verts[] = { +0.99f, -0.99f, 0.0f,
+                        +0.99f, +0.99f, 0.0f,
+                        -0.99f, +0.99f, 0.0f,
+                        -0.99f, -0.99f, 0.0f,
+                        +0.99f, -0.99f, 0.0f };
+    s_gl.glDisable(GL_TEXTURE_2D);
+
+    /*
+    s_gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    s_gl.glEnable(GL_BLEND);
+
+    s_gl.glEnable(GL_LINE_SMOOTH);
+    s_gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    */
+    s_gl.glEnableClientState(GL_VERTEX_ARRAY);
+    s_gl.glVertexPointer(3, GL_FLOAT, 0, verts);
+    s_gl.glLineWidth(3);
+    s_gl.glColor4f( 230.f/255.f, 25.f/255.f, 94.f/255.f, 255.f/255.f );
+    s_gl.glDrawArrays(GL_LINE_STRIP, 0, 5);
+    s_gl.glLineWidth(1);
+    s_gl.glDisableClientState(GL_VERTEX_ARRAY);
 }
 

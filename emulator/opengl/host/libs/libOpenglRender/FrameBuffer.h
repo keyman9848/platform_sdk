@@ -90,6 +90,7 @@ class FrameBuffer
     static void setViewport(int x0, int y0, int width, int height);
     static void setLogo(char* logo, int width, int height);
     static void setStartScreen(char* logo, int width, int height);
+    static void setWindowHighlight(bool value);
 
  private:
     FrameBuffer(int p_width, int p_height, OnPostFn onPost, void* onPostContext);
@@ -101,6 +102,7 @@ class FrameBuffer
     void displayStartScreen();
     void displayTexture(GLuint text, int width, int height);
     void static setTexture(char* data, int width, int height, GLuint* text);
+    void displayWindowHighlight();
 
  private:
     static FrameBuffer *s_theFrameBuffer;
@@ -145,5 +147,7 @@ class FrameBuffer
 
     GLuint m_textLogo;
     GLuint m_textStartScreeen;
+
+    bool m_windowHighlight;
 };
 #endif
