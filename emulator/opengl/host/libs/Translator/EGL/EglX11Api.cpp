@@ -66,7 +66,6 @@ ErrorHandler::~ErrorHandler(){
 }
 
 int ErrorHandler::errorHandlerProc(EGLNativeDisplayType dpy,XErrorEvent* event){
-    android::Mutex::Autolock mutex(s_lock);
     s_lastErrorCode = event->error_code;
     return 0;
 }
@@ -169,6 +168,10 @@ void queryConfigs(EGLNativeDisplayType dpy,int renderableType,ConfigsList& listO
         if(conf) listOut.push_back(conf);
     }
     XFree(frmtList);
+}
+
+bool validNativeDisplay(EGLNativeInternalDisplayType dpy) {
+    return dpy != NULL;
 }
 
 bool validNativeWin(EGLNativeDisplayType dpy,EGLNativeWindowType win) {

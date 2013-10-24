@@ -40,7 +40,7 @@ public:
 
 private:
     ColorBuffer();
-    void drawTexQuad(bool flipy);
+    void drawTexQuad();
     bool bind_fbo();  // binds a fbo which have this texture as render target
 
 private:
@@ -52,7 +52,6 @@ private:
     GLuint m_height;
     GLuint m_fbo;
     GLenum m_internalFormat;
-    bool m_warYInvertBug;
 };
 
 typedef SmartPtr<ColorBuffer> ColorBufferPtr;

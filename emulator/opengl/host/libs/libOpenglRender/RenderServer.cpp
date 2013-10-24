@@ -33,6 +33,11 @@ RenderServer::RenderServer() :
 {
 }
 
+RenderServer::~RenderServer()
+{
+    delete m_listenSock;
+}
+
 extern "C" int gRendererStreamMode;
 extern "C" char gRendererVMIP[];
 
@@ -221,12 +226,11 @@ restart_renderserver_main:
         if (!rt) {
             fprintf(stderr,"Failed to create RenderThread\n");
             delete stream;
-        }
-
-        if (!rt->start()) {
+            stream = NULL;
+        } else if (!rt->start()) {
             fprintf(stderr,"Failed to start RenderThread\n");
-            delete stream;
             delete rt;
+            rt = NULL;
         }
 
         //
@@ -248,10 +252,11 @@ restart_renderserver_main:
             }
         }
 
-        // insert the added thread to the list
-        threads.insert(rt);
-
-        DBG("Started new RenderThread\n");
+        // if the thread has been created and started, insert it to the list
+        if (rt) {
+            threads.insert(rt);
+            DBG("Started new RenderThread\n");
+        }
     }
 
     //
