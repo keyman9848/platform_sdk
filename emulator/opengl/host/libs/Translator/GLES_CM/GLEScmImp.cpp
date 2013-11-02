@@ -88,7 +88,6 @@ static void deleteGLESContext(GLEScontext* ctx) {
 }
 
 static void destroyObject(int type, int id) {
-    fprintf(stderr, "GLEScm:destroyObject s_glDispatch %p glIsTexture %p\n", &GLEScontext::dispatcher(), GLEScontext::dispatcher().glIsTexture);
     switch (type) {
      case 0: // Vertex Buffer
          GLEScontext::dispatcher().glDeleteBuffers(1, (const GLuint *)&id);

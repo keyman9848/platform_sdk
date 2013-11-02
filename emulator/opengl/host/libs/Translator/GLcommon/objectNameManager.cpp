@@ -28,7 +28,6 @@ NameSpace::NameSpace(NamedObjectType p_type, GlobalNameSpace *globalNameSpace) :
 
 NameSpace::~NameSpace()
 {
-    fprintf(stderr, "destructor NameSpace %p\n", this);
     for (NamesMap::iterator n = m_localToGlobalMap.begin();
          n != m_localToGlobalMap.end();
          n++) {
@@ -37,7 +36,6 @@ NameSpace::~NameSpace()
 }
 
 void NameSpace::destroy(int ver, void (*doit)(int,int,int)) {
-    fprintf(stderr, "destroy NameSpace %p\n", this);
     for (NamesMap::iterator n = m_localToGlobalMap.begin();
          n != m_localToGlobalMap.end();
          n++) {
@@ -132,7 +130,6 @@ GlobalNameSpace::GlobalNameSpace()
 
 GlobalNameSpace::~GlobalNameSpace()
 {
-    fprintf(stderr, "destructor GlobalNameSpace %p\n", this);
     mutex_destroy(&m_lock);
 }
 
@@ -167,13 +164,11 @@ GlobalNameSpace::genName(NamedObjectType p_type)
 void 
 GlobalNameSpace::deleteName(NamedObjectType p_type, unsigned int p_name)
 {
-    fprintf(stderr, "GlobalNameSpace::deleteName %p on %d\n", this, p_name);
 }
 
 void 
 GlobalNameSpace::destroyName(NamedObjectType p_type, unsigned int p_name, int ver, void (*doit)(int,int,int))
 {
-    fprintf(stderr, "GlobalNameSpace::destroyName type %d on %d\n", p_type, p_name);
     if ( p_type >= NUM_OBJECT_TYPES ) return;
 
     mutex_lock(&m_lock);
@@ -197,7 +192,6 @@ ShareGroup::ShareGroup(GlobalNameSpace *globalNameSpace)
 
 ShareGroup::~ShareGroup()
 {
-    fprintf(stderr, "destructor ShareGroup %p\n", this);
     mutex_lock(&m_lock);
     for (int t = 0; t < NUM_OBJECT_TYPES; t++) {
         delete m_nameSpace[t];
@@ -212,7 +206,6 @@ ShareGroup::~ShareGroup()
 
 void ShareGroup::destroy(int ver, void (*doit)(int,int,int))
 {
-    fprintf(stderr, "destroy ShareGroup %p\n", this);
     mutex_lock(&m_lock);
     for (int t = 0; t < NUM_OBJECT_TYPES; t++) {
         m_nameSpace[t]->destroy(ver, doit);

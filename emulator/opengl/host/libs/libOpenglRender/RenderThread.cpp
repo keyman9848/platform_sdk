@@ -168,10 +168,7 @@ int RenderThread::Main()
     // flag that this thread has finished execution
     m_finished = true;
 
-    fprintf(stderr, "thread ends\n");
-
     for (std::list<uint32_t>::iterator list_iter = tInfo.m_cctx.begin(); list_iter != tInfo.m_cctx.end(); list_iter++) {
-        fprintf(stderr, "context %X will be removed\n", *list_iter);
         FrameBuffer::getFB()->DestroyRenderContext(*list_iter);
     }
     tInfo.m_cctx.clear();

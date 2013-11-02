@@ -29,8 +29,6 @@ extern EglGlobalInfo* g_eglInfo; // defined in EglImp.cpp
 static EGLSurface g_fakeSurface = EGL_NO_SURFACE;
 
 static void doDestroyObject(int type, int id, int ver) {
-    fprintf(stderr, "doDestroyObject: type=%d id=%d ver=%d\n", type, id, ver);
-    fprintf(stderr, "doDestroyObject: destroyObject=%p\n", g_eglInfo->getIface((GLESVersion)ver)->destroyObject);
     g_eglInfo->getIface((GLESVersion)ver)->destroyObject(type, id);
 }
 
@@ -57,13 +55,9 @@ m_mngr(mngr)
 
 EglContext::~EglContext()
 {
-    fprintf(stderr, "[PID %d] destruct EglContext %p SG %p\n", 999, this, m_shareGroup.Ptr());
-
     EGLContext prevContext = internal_eglGetCurrentContext();
     EGLSurface prevReadSurf = internal_eglGetCurrentSurface(EGL_READ);
     EGLSurface prevDrawSurf = internal_eglGetCurrentSurface(EGL_DRAW);
-    fprintf(stderr, "current Context = %d read = %d draw = %d\n", prevContext, prevReadSurf, prevDrawSurf);
-    fprintf(stderr, "own Context = %d read = %d draw = %d\n", m_hndl, m_read.Ptr(), m_draw.Ptr());
     if (g_fakeSurface == EGL_NO_SURFACE) {
         GLint configAttribs[] = {
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
@@ -81,11 +75,9 @@ EglContext::~EglContext()
         int n;
         int retcfg;
         if (m_version == GLES_2_0) {
-            fprintf(stderr, "GLES is 2.0\n");
             retcfg = internal_eglChooseConfig((EGLDisplay)m_dpy, configAttribs2, &fconfig, 1, &n);
         }
         else {
-            fprintf(stderr, "GLES is 1.1\n");
             retcfg = internal_eglChooseConfig((EGLDisplay)m_dpy, configAttribs, &fconfig, 1, &n);
         }
         if (!retcfg) {

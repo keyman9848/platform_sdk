@@ -25,7 +25,6 @@ host_common_SRC_FILES :=      \
      $(host_OS_SRCS)          \
      ThreadInfo.cpp           \
      EglImp.cpp               \
-     internalEglImp.cpp       \
      EglConfig.cpp            \
      EglContext.cpp           \
      EglGlobalInfo.cpp        \
