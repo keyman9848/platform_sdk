@@ -71,6 +71,8 @@ private:
     NameSpace(NamedObjectType p_type, GlobalNameSpace *globalNameSpace);
     ~NameSpace();
 
+    void destroy(int ver, void (*doit)(int,int,int));
+
     //
     // genName - creates new object in the namespace and  returns its name.
     //           if genLocal is false then the specified p_localName will be used.
@@ -127,6 +129,7 @@ public:
     ~GlobalNameSpace();
     unsigned int genName(NamedObjectType p_type);
     void deleteName(NamedObjectType p_type, unsigned int p_name);
+    void destroyName(NamedObjectType p_type, unsigned int p_name, int ver, void(*doit)(int,int,int));
 
 private:
     mutex_t m_lock;
@@ -199,6 +202,8 @@ public:
     //
     ObjectDataPtr getObjectData(NamedObjectType p_type, ObjectLocalName p_localName);
 
+    void destroy(int ver, void(*doit)(int,int,int));
+
 private:
     explicit ShareGroup(GlobalNameSpace *globalNameSpace);
     ~ShareGroup();
@@ -251,6 +256,8 @@ public:
     //           deleted the ShareGroup object is destroyed.
     //
     void deleteShareGroup(void *p_groupName);
+
+    void destroyShareGroup(void *p_groupName, int ver, void(*doit)(int,int,int));
 
     //
     //  getGlobalContext() - this function returns a name of an existing

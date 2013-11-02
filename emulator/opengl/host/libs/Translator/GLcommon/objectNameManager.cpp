@@ -17,6 +17,7 @@
 #include <GLcommon/objectNameManager.h>
 #include <GLcommon/GLEScontext.h>
 
+#include <stdio.h>
 
 NameSpace::NameSpace(NamedObjectType p_type, GlobalNameSpace *globalNameSpace) :
     m_nextName(0),
@@ -27,10 +28,20 @@ NameSpace::NameSpace(NamedObjectType p_type, GlobalNameSpace *globalNameSpace) :
 
 NameSpace::~NameSpace()
 {
+    fprintf(stderr, "destructor NameSpace %p\n", this);
     for (NamesMap::iterator n = m_localToGlobalMap.begin();
          n != m_localToGlobalMap.end();
          n++) {
         m_globalNameSpace->deleteName(m_type, (*n).second);
+    }
+}
+
+void NameSpace::destroy(int ver, void (*doit)(int,int,int)) {
+    fprintf(stderr, "destroy NameSpace %p\n", this);
+    for (NamesMap::iterator n = m_localToGlobalMap.begin();
+         n != m_localToGlobalMap.end();
+         n++) {
+        m_globalNameSpace->destroyName(m_type, (*n).second, ver, doit);
     }
 }
 
@@ -121,6 +132,7 @@ GlobalNameSpace::GlobalNameSpace()
 
 GlobalNameSpace::~GlobalNameSpace()
 {
+    fprintf(stderr, "destructor GlobalNameSpace %p\n", this);
     mutex_destroy(&m_lock);
 }
 
@@ -155,6 +167,18 @@ GlobalNameSpace::genName(NamedObjectType p_type)
 void 
 GlobalNameSpace::deleteName(NamedObjectType p_type, unsigned int p_name)
 {
+    fprintf(stderr, "GlobalNameSpace::deleteName %p on %d\n", this, p_name);
+}
+
+void 
+GlobalNameSpace::destroyName(NamedObjectType p_type, unsigned int p_name, int ver, void (*doit)(int,int,int))
+{
+    fprintf(stderr, "GlobalNameSpace::destroyName type %d on %d\n", p_type, p_name);
+    if ( p_type >= NUM_OBJECT_TYPES ) return;
+
+    mutex_lock(&m_lock);
+    doit(p_type, p_name, ver);
+    mutex_unlock(&m_lock);
 }
 
 typedef std::pair<NamedObjectType, ObjectLocalName> ObjectIDPair;
@@ -173,6 +197,7 @@ ShareGroup::ShareGroup(GlobalNameSpace *globalNameSpace)
 
 ShareGroup::~ShareGroup()
 {
+    fprintf(stderr, "destructor ShareGroup %p\n", this);
     mutex_lock(&m_lock);
     for (int t = 0; t < NUM_OBJECT_TYPES; t++) {
         delete m_nameSpace[t];
@@ -183,6 +208,16 @@ ShareGroup::~ShareGroup()
 
     mutex_unlock(&m_lock);
     mutex_destroy(&m_lock);
+}
+
+void ShareGroup::destroy(int ver, void (*doit)(int,int,int))
+{
+    fprintf(stderr, "destroy ShareGroup %p\n", this);
+    mutex_lock(&m_lock);
+    for (int t = 0; t < NUM_OBJECT_TYPES; t++) {
+        m_nameSpace[t]->destroy(ver, doit);
+    }
+    mutex_unlock(&m_lock);
 }
 
 ObjectLocalName
@@ -393,6 +428,19 @@ ObjectNameManager::deleteShareGroup(void *p_groupName)
     ShareGroupsMap::iterator s( m_groups.find(p_groupName) );
     if (s != m_groups.end()) {
         m_groups.erase(s);
+    }
+
+    mutex_unlock(&m_lock);
+}
+
+void
+ObjectNameManager::destroyShareGroup(void *p_groupName, int ver, void(*doit)(int,int,int))
+{
+    mutex_lock(&m_lock);
+
+    ShareGroupsMap::iterator s( m_groups.find(p_groupName) );
+    if (s != m_groups.end()) {
+        (*s).second->destroy(ver, doit);
     }
 
     mutex_unlock(&m_lock);

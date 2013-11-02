@@ -175,6 +175,9 @@ static uint32_t rcCreateContext(uint32_t config,
     }
 
     HandleType ret = fb->createRenderContext(config, share, glVersion == 2);
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo && ret)
+        tInfo->m_cctx.push_back(ret);
     return ret;
 }
 
@@ -186,6 +189,9 @@ static void rcDestroyContext(uint32_t context)
     }
 
     fb->DestroyRenderContext(context);
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo)
+        tInfo->m_cctx.remove(context);
 }
 
 static uint32_t rcCreateWindowSurface(uint32_t config,

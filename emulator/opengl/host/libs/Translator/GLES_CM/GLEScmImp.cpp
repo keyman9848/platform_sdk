@@ -44,6 +44,7 @@ static void deleteGLESContext(GLEScontext* ctx);
 static void setShareGroup(GLEScontext* ctx,ShareGroupPtr grp);
 static GLEScontext* createGLESContext();
 static __translatorMustCastToProperFunctionPointerType getProcAddress(const char* procName);
+static void destroyObject(int type, int id);
 
 }
 
@@ -61,7 +62,8 @@ static GLESiface  s_glesIface = {
     flush            :(FUNCPTR)glFlush,
     finish           :(FUNCPTR)glFinish,
     setShareGroup    :setShareGroup,
-    getProcAddress   :getProcAddress
+    getProcAddress   :getProcAddress,
+    destroyObject    :destroyObject
 };
 
 #include <GLcommon/GLESmacros.h>
@@ -83,6 +85,24 @@ static GLEScontext* createGLESContext() {
 
 static void deleteGLESContext(GLEScontext* ctx) {
     if(ctx) delete ctx;
+}
+
+static void destroyObject(int type, int id) {
+    fprintf(stderr, "GLEScm:destroyObject s_glDispatch %p glIsTexture %p\n", &GLEScontext::dispatcher(), GLEScontext::dispatcher().glIsTexture);
+    switch (type) {
+     case 0: // Vertex Buffer
+         GLEScontext::dispatcher().glDeleteBuffers(1, (const GLuint *)&id);
+         break;
+     case 1: // Texture
+         GLEScontext::dispatcher().glDeleteTextures(1, (const GLuint *)&id);
+         break;
+     case 2: // Renderbuffer
+         GLEScontext::dispatcher().glDeleteRenderbuffersEXT(1, (const GLuint *)&id);
+         break;
+     case 3: // Framebuffer
+         GLEScontext::dispatcher().glDeleteFramebuffersEXT(1, (const GLuint *)&id);
+         break;
+    }
 }
 
 static void setShareGroup(GLEScontext* ctx,ShareGroupPtr grp) {

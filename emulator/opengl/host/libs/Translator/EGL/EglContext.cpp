@@ -18,9 +18,21 @@
 #include "EglGlobalInfo.h"
 #include "EglOsApi.h"
 
+#include <stdio.h>
+
+#include "egl_internal.h"
+
 unsigned int EglContext::s_nextContextHndl = 0;
 
 extern EglGlobalInfo* g_eglInfo; // defined in EglImp.cpp
+
+static EGLSurface g_fakeSurface = EGL_NO_SURFACE;
+
+static void doDestroyObject(int type, int id, int ver) {
+    fprintf(stderr, "doDestroyObject: type=%d id=%d ver=%d\n", type, id, ver);
+    fprintf(stderr, "doDestroyObject: destroyObject=%p\n", g_eglInfo->getIface((GLESVersion)ver)->destroyObject);
+    g_eglInfo->getIface((GLESVersion)ver)->destroyObject(type, id);
+}
 
 bool EglContext::usingSurface(SurfacePtr surface) {
   return surface.Ptr() == m_read.Ptr() || surface.Ptr() == m_draw.Ptr();
@@ -45,7 +57,71 @@ m_mngr(mngr)
 
 EglContext::~EglContext()
 {
-  
+    fprintf(stderr, "[PID %d] destruct EglContext %p SG %p\n", 999, this, m_shareGroup.Ptr());
+
+    EGLContext prevContext = internal_eglGetCurrentContext();
+    EGLSurface prevReadSurf = internal_eglGetCurrentSurface(EGL_READ);
+    EGLSurface prevDrawSurf = internal_eglGetCurrentSurface(EGL_DRAW);
+    fprintf(stderr, "current Context = %d read = %d draw = %d\n", prevContext, prevReadSurf, prevDrawSurf);
+    fprintf(stderr, "own Context = %d read = %d draw = %d\n", m_hndl, m_read.Ptr(), m_draw.Ptr());
+    if (g_fakeSurface == EGL_NO_SURFACE) {
+        GLint configAttribs[] = {
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_NONE
+        };
+
+        GLint configAttribs2[] = {
+            EGL_SURFACE_TYPE, EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+            EGL_NONE
+        };
+
+        EGLConfig fconfig;
+        int n;
+        int retcfg;
+        if (m_version == GLES_2_0) {
+            fprintf(stderr, "GLES is 2.0\n");
+            retcfg = internal_eglChooseConfig((EGLDisplay)m_dpy, configAttribs2, &fconfig, 1, &n);
+        }
+        else {
+            fprintf(stderr, "GLES is 1.1\n");
+            retcfg = internal_eglChooseConfig((EGLDisplay)m_dpy, configAttribs, &fconfig, 1, &n);
+        }
+        if (!retcfg) {
+            fprintf(stderr, "Unable to choose config\n");
+        }
+
+        EGLint pbufAttribs[] = {
+            EGL_WIDTH, 1,
+            EGL_HEIGHT, 1,
+            EGL_NONE
+        };
+
+        g_fakeSurface = internal_eglCreatePbufferSurface((EGLDisplay)m_dpy, fconfig, pbufAttribs);
+        if (g_fakeSurface == EGL_NO_SURFACE)
+            fprintf(stderr, "Unable to create fake surface\n");
+    }
+
+    SurfacePtr surfPtr = m_dpy->getSurface(g_fakeSurface);
+    if (!surfPtr.Ptr())
+        fprintf(stderr, "Unable to get fake surface\n");
+    else {
+        if (EglOS::makeCurrent(m_dpy->nativeType(), surfPtr.Ptr(), surfPtr.Ptr(), nativeType()) == EGL_FALSE)
+            fprintf(stderr, "Unable to switch to context, eglGetError=%X\n", internal_eglGetError());
+    }
+
+    if (m_mngr)
+    {
+        m_mngr->destroyShareGroup(m_native, m_version, doDestroyObject);
+        m_mngr->deleteShareGroup(m_native);
+    }
+
+    // Switch back to previous context
+    if (internal_eglMakeCurrent((EGLDisplay)m_dpy, prevReadSurf, prevDrawSurf, prevContext) == EGL_FALSE) {
+        fprintf(stderr, "Unable to switch to previous context\n");
+    }
+
     //
     // remove the context in the underlying OS layer
     // 
@@ -55,11 +131,6 @@ EglContext::~EglContext()
     // call the client-api to remove the GLES context
     // 
     g_eglInfo->getIface(version())->deleteGLESContext(m_glesContext);
-
-    if (m_mngr)
-    {
-        m_mngr->deleteShareGroup(m_native);
-    }
 }
 
 void EglContext::setSurfaces(SurfacePtr read,SurfacePtr draw)
