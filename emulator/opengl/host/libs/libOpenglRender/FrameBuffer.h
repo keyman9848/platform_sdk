@@ -100,7 +100,7 @@ class FrameBuffer
     void initGLState();
     void displayLogo();
     void displayStartScreen();
-    void displayTexture(GLuint text, int width, int height);
+    void displayTexture(GLuint text, int x0, int y0, int width, int height);
     void static setTexture(char* data, int width, int height, GLuint* text);
     void displayWindowHighlight();
 
@@ -146,6 +146,7 @@ class FrameBuffer
     GLuint m_framebuffer;
 
     GLuint m_textLogo;
+    float m_logoRatio;
     GLuint m_textStartScreeen;
 
     bool m_windowHighlight;

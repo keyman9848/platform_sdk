@@ -397,6 +397,7 @@ FrameBuffer::FrameBuffer(int p_width, int p_height,
     m_fbImage(NULL),
     m_framebuffer(0),
     m_textLogo(0),
+    m_logoRatio(0),
     m_textStartScreeen(0),
     m_windowHighlight(false)
 {
@@ -1017,24 +1018,24 @@ void FrameBuffer::setTexture(char* data, int width, int height, GLuint* texture)
     }
 }
 
-void FrameBuffer::displayTexture(GLuint text, int width, int height)
+void FrameBuffer::displayTexture(GLuint text, int x0, int y0, int width, int height)
 {
     GLfloat verts[] = { -1.0f, -1.0f, 0.0f,
-                         -1.0f, +1.0f, 0.0f,
-                         +1.0f, -1.0f, 0.0f,
-                         +1.0f, +1.0f, 0.0f };
+                        -1.0f, +1.0f, 0.0f,
+                        +1.0f, -1.0f, 0.0f,
+                        +1.0f, +1.0f, 0.0f };
 
     GLfloat tcoords[] = { 0.0f, 1.0f,
-                           0.0f, 0.0f,
-                           1.0f, 1.0f,
-                           1.0f, 0.0f };
+                          0.0f, 0.0f,
+                          1.0f, 1.0f,
+                          1.0f, 0.0f };
 
-    s_gl.glViewport(0, 0, width, height);
+    s_gl.glViewport(x0, y0, width, height);
 
     s_gl.glEnable(GL_BLEND);
     s_gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    s_gl.glBindTexture(GL_TEXTURE_2D, m_textLogo);
+    s_gl.glBindTexture(GL_TEXTURE_2D, text);
     s_gl.glEnable(GL_TEXTURE_2D);
     s_gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
@@ -1052,17 +1053,23 @@ void FrameBuffer::displayTexture(GLuint text, int width, int height)
 
 void FrameBuffer::displayLogo()
 {
-    displayTexture(m_textLogo, 192, 64);
+    int diag = m_FBwidth + m_FBheight;
+    int w = (int)(diag/8.0);
+    int h = (int)(w/m_logoRatio);
+    int pad = (int)((8.0*m_FBwidth)/m_width);
+
+    displayTexture(m_textLogo, pad, pad, w, h);
 }
 
 void FrameBuffer::displayStartScreen()
 {
-    displayTexture(m_textStartScreeen, m_FBwidth, m_FBheight);
+    displayTexture(m_textStartScreeen, 0, 0, m_FBwidth, m_FBheight);
 }
 
 void FrameBuffer::setLogo(char* logo, int width, int height)
 {
     if (s_theFrameBuffer) {
+        s_theFrameBuffer->m_logoRatio = width/height;
         setTexture(logo, width, height, &s_theFrameBuffer->m_textLogo);
     }
 }
