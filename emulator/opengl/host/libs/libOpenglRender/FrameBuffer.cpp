@@ -1053,12 +1053,14 @@ void FrameBuffer::displayTexture(GLuint text, int x0, int y0, int width, int hei
 
 void FrameBuffer::displayLogo()
 {
-    int diag = m_FBwidth + m_FBheight;
-    int w = (int)(diag/8.0);
-    int h = (int)(w/m_logoRatio);
-    int pad = (int)((8.0*m_FBwidth)/m_width);
+    if(m_textLogo) {
+        int diag = m_FBwidth + m_FBheight;
+        int w = (int)(diag/8.0);
+        int h = (int)(w/m_logoRatio);
+        int pad = (int)((8.0*m_FBwidth)/m_width);
 
-    displayTexture(m_textLogo, pad, pad, w, h);
+        displayTexture(m_textLogo, pad, pad, w, h);
+    }
 }
 
 void FrameBuffer::displayStartScreen()
@@ -1069,7 +1071,12 @@ void FrameBuffer::displayStartScreen()
 void FrameBuffer::setLogo(char* logo, int width, int height)
 {
     if (s_theFrameBuffer) {
-        s_theFrameBuffer->m_logoRatio = width/height;
+        if(height != 0) {
+            s_theFrameBuffer->m_logoRatio = width/height;
+        }
+        else {
+            s_theFrameBuffer->m_logoRatio = 0.0;
+        }
         setTexture(logo, width, height, &s_theFrameBuffer->m_textLogo);
     }
 }
