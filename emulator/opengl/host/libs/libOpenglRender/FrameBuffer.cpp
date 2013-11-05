@@ -458,10 +458,9 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
                     // the last posted color buffer.
                     s_gl.glViewport(0, 0, p_width, p_height);
                     fb->m_zRot = zRot;
-                    fb->post( fb->m_lastPostedColorBuffer, false );
-
                     fb->m_FBwidth = p_width;
                     fb->m_FBheight = p_height;
+                    fb->post( fb->m_lastPostedColorBuffer, false );
 
                     fb->unbind_locked();
                     success = true;
@@ -1092,7 +1091,7 @@ void FrameBuffer::setWindowHighlight(bool value)
 {
     if (s_theFrameBuffer) {
         if (s_theFrameBuffer->m_windowHighlight != value)
-	    s_theFrameBuffer->m_windowHighlight = value;    
+	    s_theFrameBuffer->m_windowHighlight = value;
     }
 }
 
