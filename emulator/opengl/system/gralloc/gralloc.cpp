@@ -783,9 +783,9 @@ static int gralloc_device_open(const hw_module_t* module,
         D("gralloc: width=%d\n", width);
         EGLint height = rcEnc->rcGetFBParam(rcEnc, FB_HEIGHT);
         D("gralloc: height=%d\n", height);
-        EGLint xdpi = rcEnc->rcGetFBParam(rcEnc, FB_XDPI);
+        EGLint xdpi = rcEnc->rcGetFBParam(rcEnc, FB_DPI);
         D("gralloc: xdpi=%d\n", xdpi);
-        EGLint ydpi = rcEnc->rcGetFBParam(rcEnc, FB_YDPI);
+        EGLint ydpi = rcEnc->rcGetFBParam(rcEnc, FB_DPI);
         D("gralloc: ydpi=%d\n", ydpi);
         EGLint fps = rcEnc->rcGetFBParam(rcEnc, FB_FPS);
         D("gralloc: fps=%d\n", fps);
