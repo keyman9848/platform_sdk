@@ -435,9 +435,12 @@ bool FrameBuffer::setupSubWindow(FBNativeWindowType p_window,
         if (!fb->m_subWin) {
 
             // create native subwindow for FB display output
-            fb->m_subWin = createSubWindow(p_window,
-                                           &fb->m_subWinDisplay,
-                                           p_x,p_y,p_width,p_height);
+//            fb->m_subWin = createSubWindow(p_window,
+//                                           &fb->m_subWinDisplay,
+//                                           p_x,p_y,p_width,p_height);
+
+            fb->m_subWin = p_window;
+
             if (fb->m_subWin) {
                 fb->m_nativeWindow = p_window;
 
@@ -945,6 +948,7 @@ void FrameBuffer::setViewport(int x0, int y0, int width, int height)
         }
 
         s_theFrameBuffer->unbind_locked();
+        s_theFrameBuffer-> m_lock.unlock();
     }
 }
 
