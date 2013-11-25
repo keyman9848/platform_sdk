@@ -357,6 +357,9 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
                                           GL_RENDERBUFFER_OES, renderbuffer);
     }
 
+    // Force VSync
+    //s_egl.eglSwapInterval(fb->m_eglDisplay, 1);
+
     // release the FB context
     fb->unbind_locked();
 
@@ -1149,16 +1152,21 @@ void FrameBuffer::cameraEffect()
     s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
     s_gl.glScalef(1, -1, 1);
 
-    int steps = 16; // ~250ms at 60fps
+    int steps = 15; // ~250ms at 60fps
+    long long duration = 250;
+    long long start = GetCurrentTimeMS();
+    long long elapsed = 0;
 
-    for(int i=1; i<steps; i++) {
+    //for(int i=1; i<=steps; i++) {
+    do{
         displayTexture(originalTex, 0, 0, m_FBwidth, m_FBheight);
-        float factor = 1.0 - 0.98*i*i/steps/steps;
+        float factor = 1.0 - 0.98*elapsed*elapsed/duration/duration;
         int w = m_FBwidth*factor;
         int h = m_FBheight*factor;
         displayTexture(greyTex, (m_FBwidth-w)/2, (m_FBheight-h)/2, w, h);
         s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
-    }
+        elapsed = GetCurrentTimeMS() - start;
+    } while(elapsed <= duration);
 
     s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
     s_gl.glPopMatrix();
