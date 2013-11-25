@@ -892,7 +892,7 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
                 displayLogo();
             }
 
-	    if(m_windowHighlight) {
+            if(m_windowHighlight) {
                 displayWindowHighlight();
             }
         }
@@ -944,7 +944,7 @@ void FrameBuffer::setViewport(int x0, int y0, int width, int height)
             s_theFrameBuffer->unbind_locked();
         }
 
-        s_theFrameBuffer->unbind_locked();
+        s_theFrameBuffer->m_lock.unlock();
     }
 }
 
@@ -955,7 +955,7 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
     if (s_theFrameBuffer) {
 
         s_theFrameBuffer->m_lock.lock();
-        s_theFrameBuffer->bind_locked();
+        s_theFrameBuffer->bindSubwin_locked();
 
         s_theFrameBuffer->m_onPost = onPost;
         s_theFrameBuffer->m_onPostContext = onPostContext;
@@ -979,6 +979,10 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
                                               GL_RENDERBUFFER_OES, renderbuffer);
             s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
         }
+        if(onPost == NULL) {
+            s_theFrameBuffer->cameraEffect();
+            s_theFrameBuffer->post(s_theFrameBuffer->m_lastPostedColorBuffer, false);
+        }
         s_theFrameBuffer->unbind_locked();
         s_theFrameBuffer-> m_lock.unlock();
     }
@@ -988,32 +992,22 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
 
 void FrameBuffer::setTexture(char* data, int width, int height, GLuint* texture)
 {
-    if (s_theFrameBuffer) {
+    if(texture) {
+        s_gl.glDeleteTextures(1, texture);
+        *texture = 0;
+    }
 
-        s_theFrameBuffer->m_lock.lock();
-        s_theFrameBuffer->bind_locked();
+    if(data) {
+        s_gl.glGenTextures(1, texture);
+        s_gl.glBindTexture(GL_TEXTURE_2D, *texture);
+        s_gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                          0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-
-        if(texture) {
-            s_gl.glDeleteTextures(1, texture);
-            *texture = 0;
-        }
-
-        if(data) {
-            s_gl.glGenTextures(1, texture);
-            s_gl.glBindTexture(GL_TEXTURE_2D, *texture);
-            s_gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                              0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            s_gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-        }
-
-        s_theFrameBuffer-> m_lock.unlock();
-        s_theFrameBuffer-> m_lock.unlock();
+        s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        s_gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     }
 }
 
@@ -1076,14 +1070,22 @@ void FrameBuffer::setLogo(char* logo, int width, int height)
         else {
             s_theFrameBuffer->m_logoRatio = 0.0;
         }
+        s_theFrameBuffer->m_lock.lock();
+        s_theFrameBuffer->bind_locked();
         setTexture(logo, width, height, &s_theFrameBuffer->m_textLogo);
+        s_theFrameBuffer->unbind_locked();
+        s_theFrameBuffer->m_lock.unlock();
     }
 }
 
 void FrameBuffer::setStartScreen(char* image, int width, int height)
 {
     if (s_theFrameBuffer) {
+        s_theFrameBuffer->m_lock.lock();
+        s_theFrameBuffer->bind_locked();
         setTexture(image, width, height, &s_theFrameBuffer->m_textStartScreeen);
+        s_theFrameBuffer->unbind_locked();
+        s_theFrameBuffer->m_lock.unlock();
     }
 }
 
@@ -1091,7 +1093,7 @@ void FrameBuffer::setWindowHighlight(bool value)
 {
     if (s_theFrameBuffer) {
         if (s_theFrameBuffer->m_windowHighlight != value)
-	    s_theFrameBuffer->m_windowHighlight = value;
+            s_theFrameBuffer->m_windowHighlight = value;
     }
 }
 
@@ -1118,5 +1120,50 @@ void FrameBuffer::displayWindowHighlight()
     s_gl.glDrawArrays(GL_LINE_STRIP, 0, 5);
     s_gl.glLineWidth(1);
     s_gl.glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void FrameBuffer::cameraEffect()
+{
+    GLuint originalTex;
+    GLuint greyTex;
+
+    unsigned char* greyImg = (unsigned char*)malloc(4*m_width*m_height);
+
+    // BGRA -> RGBA
+    for(int i=0; i<(m_width*m_height); i++) {
+        unsigned char tmp = m_fbImage[4*i+2];
+        m_fbImage[4*i+2] = m_fbImage[4*i];
+        m_fbImage[4*i] = tmp;
+
+        greyImg[4*i] = (unsigned char)(m_fbImage[4*i]*0.299 + m_fbImage[4*i+1]*0.587 + m_fbImage[4*i+2]*0.114);
+        greyImg[4*i+1] = greyImg[4*i];
+        greyImg[4*i+2] = greyImg[4*i];
+        greyImg[4*i+3] = 255;
+    }
+
+    setTexture((char*)m_fbImage, m_width, m_height, &originalTex);
+    setTexture((char*)greyImg, m_width, m_height, &greyTex);
+    free(greyImg);
+
+    s_gl.glPushMatrix();
+    s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
+    s_gl.glScalef(1, -1, 1);
+
+    int steps = 16; // ~250ms at 60fps
+
+    for(int i=1; i<steps; i++) {
+        displayTexture(originalTex, 0, 0, m_FBwidth, m_FBheight);
+        float factor = 1.0 - 0.98*i*i/steps/steps;
+        int w = m_FBwidth*factor;
+        int h = m_FBheight*factor;
+        displayTexture(greyTex, (m_FBwidth-w)/2, (m_FBheight-h)/2, w, h);
+        s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
+    }
+
+    s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
+    s_gl.glPopMatrix();
+
+    setTexture(NULL, 0, 0, &originalTex);
+    setTexture(NULL, 0, 0, &greyTex);
 }
 
