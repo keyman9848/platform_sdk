@@ -1132,7 +1132,7 @@ void FrameBuffer::cameraEffect()
 
     unsigned char* greyImg = (unsigned char*)malloc(4*m_width*m_height);
 
-    // FrameBuffer cpature is mage in BGRA format
+    // FrameBuffer capture is made in BGRA format
     // glTexImage2D wants RGBA
     for(int i=0; i<(m_width*m_height); i++) {
         unsigned char tmp = m_fbImage[4*i+2];
@@ -1161,7 +1161,7 @@ void FrameBuffer::cameraEffect()
     long long elapsed = 0;
 
     do{
-        // display captured clor frambuffer in background
+        // display captured color frambuffer in background
         displayTexture(originalTex, 0, 0, m_FBwidth, m_FBheight);
         // shrinking factor non-linear
         float factor = 1.0 - 0.98*elapsed*elapsed/duration/duration;
