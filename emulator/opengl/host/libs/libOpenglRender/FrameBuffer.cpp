@@ -358,7 +358,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     }
 
     // Force VSync
-    //s_egl.eglSwapInterval(fb->m_eglDisplay, 1);
+    s_egl.eglSwapInterval(fb->m_eglDisplay, 1);
 
     // release the FB context
     fb->unbind_locked();
@@ -1132,12 +1132,14 @@ void FrameBuffer::cameraEffect()
 
     unsigned char* greyImg = (unsigned char*)malloc(4*m_width*m_height);
 
-    // BGRA -> RGBA
+    // FrameBuffer cpature is mage in BGRA format
+    // glTexImage2D wants RGBA
     for(int i=0; i<(m_width*m_height); i++) {
         unsigned char tmp = m_fbImage[4*i+2];
         m_fbImage[4*i+2] = m_fbImage[4*i];
         m_fbImage[4*i] = tmp;
 
+        // Greyscale conversion
         greyImg[4*i] = (unsigned char)(m_fbImage[4*i]*0.299 + m_fbImage[4*i+1]*0.587 + m_fbImage[4*i+2]*0.114);
         greyImg[4*i+1] = greyImg[4*i];
         greyImg[4*i+2] = greyImg[4*i];
@@ -1149,20 +1151,23 @@ void FrameBuffer::cameraEffect()
     free(greyImg);
 
     s_gl.glPushMatrix();
+    // rotation according to VM orientation
     s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
+    // Vertical flip
     s_gl.glScalef(1, -1, 1);
 
-    int steps = 15; // ~250ms at 60fps
-    long long duration = 250;
+    long long duration = 250; // ms
     long long start = GetCurrentTimeMS();
     long long elapsed = 0;
 
-    //for(int i=1; i<=steps; i++) {
     do{
+        // display captured clor frambuffer in background
         displayTexture(originalTex, 0, 0, m_FBwidth, m_FBheight);
+        // shrinking factor non-linear
         float factor = 1.0 - 0.98*elapsed*elapsed/duration/duration;
         int w = m_FBwidth*factor;
         int h = m_FBheight*factor;
+        // display grayscale shrinked captured image
         displayTexture(greyTex, (m_FBwidth-w)/2, (m_FBheight-h)/2, w, h);
         s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
         elapsed = GetCurrentTimeMS() - start;
@@ -1171,6 +1176,7 @@ void FrameBuffer::cameraEffect()
     s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
     s_gl.glPopMatrix();
 
+    // free textures
     setTexture(NULL, 0, 0, &originalTex);
     setTexture(NULL, 0, 0, &greyTex);
 }
