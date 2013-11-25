@@ -944,7 +944,7 @@ void FrameBuffer::setViewport(int x0, int y0, int width, int height)
             s_theFrameBuffer->unbind_locked();
         }
 
-        s_theFrameBuffer->unbind_locked();
+        s_theFrameBuffer->m_lock.unlock();
     }
 }
 
