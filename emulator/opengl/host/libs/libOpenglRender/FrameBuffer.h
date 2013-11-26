@@ -103,7 +103,7 @@ class FrameBuffer
     void displayTexture(GLuint text, int x0, int y0, int width, int height);
     void static setTexture(char* data, int width, int height, GLuint* text);
     void displayWindowHighlight();
-    void cameraEffect();
+    void cameraEffect(int steps);
 
  private:
     static FrameBuffer *s_theFrameBuffer;

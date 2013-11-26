@@ -985,7 +985,7 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
         if(onPost == NULL) {
             // Screen capture stopped.
             // Let's play a nice visual effect.
-            s_theFrameBuffer->cameraEffect();
+            s_theFrameBuffer->cameraEffect(20);
             // Need to refresh the screen after the visual effect
             s_theFrameBuffer->post(s_theFrameBuffer->m_lastPostedColorBuffer, false);
         }
@@ -1128,7 +1128,7 @@ void FrameBuffer::displayWindowHighlight()
     s_gl.glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void FrameBuffer::cameraEffect()
+void FrameBuffer::cameraEffect(int steps)
 {
     GLuint originalTex;
     GLuint greyTex;
@@ -1165,22 +1165,17 @@ void FrameBuffer::cameraEffect()
     // Vertical flip
     s_gl.glScalef(1, -1, 1);
 
-    long long duration = 250; // ms
-    long long start = GetCurrentTimeMS();
-    long long elapsed = 0;
-
-    do{
+    for(int i=1; i<=steps; i++) {
         // display captured color frambuffer in background
         displayTexture(originalTex, 0, 0, m_FBwidth, m_FBheight);
         // shrinking factor non-linear
-        float factor = 1.0 - 0.98*elapsed*elapsed/duration/duration;
+        float factor = 1.0 - 0.98*i*i/steps/steps;
         int w = m_FBwidth*factor;
         int h = m_FBheight*factor;
         // display grayscale shrinked captured image
         displayTexture(greyTex, (m_FBwidth-w)/2, (m_FBheight-h)/2, w, h);
         s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
-        elapsed = GetCurrentTimeMS() - start;
-    } while(elapsed <= duration);
+    }
 
     s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
     s_gl.glPopMatrix();
