@@ -983,7 +983,10 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
             s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
         }
         if(onPost == NULL) {
+            // Screen capture stopped.
+            // Let's play a nice visual effect.
             s_theFrameBuffer->cameraEffect();
+            // Need to refresh the screen after the visual effect
             s_theFrameBuffer->post(s_theFrameBuffer->m_lastPostedColorBuffer, false);
         }
         s_theFrameBuffer->unbind_locked();
@@ -1132,9 +1135,15 @@ void FrameBuffer::cameraEffect()
 
     unsigned char* greyImg = (unsigned char*)malloc(4*m_width*m_height);
 
+    if(greyImg == NULL) {
+        // malloc failed, just return without visual effect
+        return;
+    }
+
     // FrameBuffer capture is made in BGRA format
     // glTexImage2D wants RGBA
     for(int i=0; i<(m_width*m_height); i++) {
+        // Swap Red <-> Blue channels
         unsigned char tmp = m_fbImage[4*i+2];
         m_fbImage[4*i+2] = m_fbImage[4*i];
         m_fbImage[4*i] = tmp;
