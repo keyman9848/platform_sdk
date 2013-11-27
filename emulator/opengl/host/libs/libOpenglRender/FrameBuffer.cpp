@@ -846,7 +846,7 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
 
         // bind the subwindow eglSurface
         if (!bindSubwin_locked()) {
-            ERR("FrameBuffer::post eglMakeCurrent failed\n");
+            fprintf(stderr, "FrameBuffer::post eglMakeCurrent failed\n");
             if (needLock) m_lock.unlock();
             return false;
         }
@@ -982,15 +982,16 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
                                               GL_RENDERBUFFER_OES, renderbuffer);
             s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
         }
+        s_theFrameBuffer->unbind_locked();
+        s_theFrameBuffer->m_lock.unlock();
+
         if(onPost == NULL) {
             // Screen capture stopped.
             // Let's play a nice visual effect.
             s_theFrameBuffer->cameraEffect(250); // ms
             // Need to refresh the screen after the visual effect
-            s_theFrameBuffer->post(s_theFrameBuffer->m_lastPostedColorBuffer, false);
+            s_theFrameBuffer->repost();
         }
-        s_theFrameBuffer->unbind_locked();
-        s_theFrameBuffer-> m_lock.unlock();
     }
 
     return success;
@@ -1155,24 +1156,28 @@ void FrameBuffer::cameraEffect(int duration)
         greyImg[4*i+3] = 255;
     }
 
+    s_theFrameBuffer->m_lock.lock();
+    s_theFrameBuffer->bind_locked();
     setTexture((char*)m_fbImage, m_width, m_height, &originalTex);
     setTexture((char*)greyImg, m_width, m_height, &greyTex);
-    free(greyImg);
-
-    s_gl.glPushMatrix();
-    // rotation according to VM orientation
-    s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
-    // Vertical flip
-    s_gl.glScalef(1, -1, 1);
+    s_theFrameBuffer->unbind_locked();
+    s_theFrameBuffer->m_lock.unlock();
 
     long long start = GetCurrentTimeMS();
     long long elapsed = 0;
 
     do{
+        s_theFrameBuffer->m_lock.lock();
+        s_theFrameBuffer->bindSubwin_locked();
+
+        s_gl.glPushMatrix();
+        // rotation according to VM orientation
+        s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
+        // Vertical flip
+        s_gl.glScalef(1, -1, 1);
+
         // display captured color frambuffer in background
-        // Bug: disabled to avoid corruption of openGL buffer.
-        // Don't know how to fix it.
-        // displayTexture(originalTex, 0, 0, m_FBwidth, m_FBheight);
+        displayTexture(originalTex, 0, 0, m_FBwidth, m_FBheight);
         // shrinking factor non-linear
         float factor = 1.0 - 0.98*elapsed*elapsed/duration/duration;
         int w = m_FBwidth*factor;
@@ -1181,13 +1186,23 @@ void FrameBuffer::cameraEffect(int duration)
         displayTexture(greyTex, (m_FBwidth-w)/2, (m_FBheight-h)/2, w, h);
         s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
         elapsed = GetCurrentTimeMS() - start;
+
+        s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
+        s_gl.glPopMatrix();
+
+        s_theFrameBuffer->unbind_locked();
+        s_theFrameBuffer->m_lock.unlock();
+
     } while(elapsed <= duration);
 
-    s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
-    s_gl.glPopMatrix();
-
     // free textures
+    s_theFrameBuffer->m_lock.lock();
+    s_theFrameBuffer->bind_locked();
     setTexture(NULL, 0, 0, &originalTex);
     setTexture(NULL, 0, 0, &greyTex);
+    s_theFrameBuffer->unbind_locked();
+    s_theFrameBuffer->m_lock.unlock();
+
+    free(greyImg);
 }
 
