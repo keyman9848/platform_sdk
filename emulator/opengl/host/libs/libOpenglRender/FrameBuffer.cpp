@@ -999,22 +999,32 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
 
 void FrameBuffer::setTexture(char* data, int width, int height, GLuint* texture)
 {
-    if(texture) {
-        s_gl.glDeleteTextures(1, texture);
-        *texture = 0;
-    }
+    if (s_theFrameBuffer) {
 
-    if(data) {
-        s_gl.glGenTextures(1, texture);
-        s_gl.glBindTexture(GL_TEXTURE_2D, *texture);
-        s_gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                          0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        s_theFrameBuffer->m_lock.lock();
+        s_theFrameBuffer->bind_locked();
 
-        s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        s_gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+        if(texture) {
+            s_gl.glDeleteTextures(1, texture);
+            *texture = 0;
+        }
+
+        if(data) {
+            s_gl.glGenTextures(1, texture);
+            s_gl.glBindTexture(GL_TEXTURE_2D, *texture);
+            s_gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                              0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            s_gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            s_gl.glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        }
+
+        s_theFrameBuffer-> m_lock.unlock();
+        s_theFrameBuffer-> m_lock.unlock();
     }
 }
 
@@ -1077,22 +1087,14 @@ void FrameBuffer::setLogo(char* logo, int width, int height)
         else {
             s_theFrameBuffer->m_logoRatio = 0.0;
         }
-        s_theFrameBuffer->m_lock.lock();
-        s_theFrameBuffer->bind_locked();
         setTexture(logo, width, height, &s_theFrameBuffer->m_textLogo);
-        s_theFrameBuffer->unbind_locked();
-        s_theFrameBuffer->m_lock.unlock();
     }
 }
 
 void FrameBuffer::setStartScreen(char* image, int width, int height)
 {
     if (s_theFrameBuffer) {
-        s_theFrameBuffer->m_lock.lock();
-        s_theFrameBuffer->bind_locked();
         setTexture(image, width, height, &s_theFrameBuffer->m_textStartScreeen);
-        s_theFrameBuffer->unbind_locked();
-        s_theFrameBuffer->m_lock.unlock();
     }
 }
 
@@ -1156,18 +1158,14 @@ void FrameBuffer::cameraEffect(int duration)
         greyImg[4*i+3] = 255;
     }
 
-    s_theFrameBuffer->m_lock.lock();
-    s_theFrameBuffer->bind_locked();
     setTexture((char*)m_fbImage, m_width, m_height, &originalTex);
     setTexture((char*)greyImg, m_width, m_height, &greyTex);
-    s_theFrameBuffer->unbind_locked();
-    s_theFrameBuffer->m_lock.unlock();
 
     long long start = GetCurrentTimeMS();
     long long elapsed = 0;
 
+    s_theFrameBuffer->m_lock.lock();
     do{
-        s_theFrameBuffer->m_lock.lock();
         s_theFrameBuffer->bindSubwin_locked();
 
         s_gl.glPushMatrix();
@@ -1191,17 +1189,12 @@ void FrameBuffer::cameraEffect(int duration)
         s_gl.glPopMatrix();
 
         s_theFrameBuffer->unbind_locked();
-        s_theFrameBuffer->m_lock.unlock();
-
     } while(elapsed <= duration);
+    s_theFrameBuffer->m_lock.unlock();
 
     // free textures
-    s_theFrameBuffer->m_lock.lock();
-    s_theFrameBuffer->bind_locked();
     setTexture(NULL, 0, 0, &originalTex);
     setTexture(NULL, 0, 0, &greyTex);
-    s_theFrameBuffer->unbind_locked();
-    s_theFrameBuffer->m_lock.unlock();
 
     free(greyImg);
 }
