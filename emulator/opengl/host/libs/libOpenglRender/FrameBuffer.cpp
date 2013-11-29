@@ -332,7 +332,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     //
     // Initialize some GL state in the pbuffer context
     //
-    fb->initGLState();
+    fb->initGLState(width, height);
 
     //
     // Allocate space for the onPost framebuffer image
@@ -375,8 +375,8 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
 
 FrameBuffer::FrameBuffer(int p_width, int p_height,
                          OnPostFn onPost, void* onPostContext) :
-    m_x(0),
-    m_y(0),
+    m_x(0.0f),
+    m_y(0.0f),
     m_width(p_width),
     m_height(p_height),
     m_FBwidth(p_width),
@@ -804,7 +804,7 @@ bool FrameBuffer::bindSubwin_locked()
     // initialize GL state in eglContext if not yet initilaized
     //
     if (!m_eglContextInitialized) {
-        initGLState();
+        initGLState(m_width, m_height);
         m_eglContextInitialized = true;
     }
 
@@ -877,27 +877,20 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
             s_gl.glViewport(0, 0, m_FBwidth, m_FBheight);
         }
 
+        s_gl.glTranslatef(m_x, m_y, 0.0f);
         s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
-        if (m_zRot != 0.0f) {
-            s_gl.glClear(GL_COLOR_BUFFER_BIT);
+        s_gl.glClear(GL_COLOR_BUFFER_BIT);
+
+        ret = (*c).second.cb->post();
+
+        s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
+
+        if(m_textLogo) {
+            displayLogo();
         }
 
-        if(m_textStartScreeen && (GetCurrentTimeMS() <= m_statsStartTime)) {
-            displayStartScreen();
-            s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
-        }
-        else {
-            ret = (*c).second.cb->post();
-
-            s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
-
-            if(m_textLogo) {
-                displayLogo();
-            }
-
-            if(m_windowHighlight) {
-                displayWindowHighlight();
-            }
+        if(m_windowHighlight) {
+            displayWindowHighlight();
         }
 
         s_gl.glPopMatrix();
@@ -922,31 +915,37 @@ bool FrameBuffer::repost()
     return false;
 }
 
-void FrameBuffer::initGLState()
+void FrameBuffer::initGLState(float w, float h)
 {
     s_gl.glMatrixMode(GL_PROJECTION);
     s_gl.glLoadIdentity();
-    s_gl.glOrthof(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+    s_gl.glOrthof(-w/2.0f, w/2.0f, -h/2.0f, h/2.0f, -1.0, 1.0);
     s_gl.glMatrixMode(GL_MODELVIEW);
     s_gl.glLoadIdentity();
+    s_gl.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 }
 
-void FrameBuffer::setViewport(int x0, int y0, int width, int height)
+void FrameBuffer::setViewport(float width, float height)
 {
     if (s_theFrameBuffer) {
 
         s_theFrameBuffer->m_lock.lock();
 
         if (s_theFrameBuffer->bindSubwin_locked()) {
-
-            s_gl.glViewport(x0, y0, width, height);
-            s_theFrameBuffer->m_x = x0;
-            s_theFrameBuffer->m_y = y0;
-            s_theFrameBuffer->m_FBwidth = width;
-            s_theFrameBuffer->m_FBheight = height;
+            s_theFrameBuffer->initGLState(width, height);
             s_theFrameBuffer->unbind_locked();
         }
 
+        s_theFrameBuffer->m_lock.unlock();
+    }
+}
+
+void FrameBuffer::scrollViewport(float x, float y)
+{
+    if (s_theFrameBuffer) {
+        s_theFrameBuffer->m_lock.lock();
+        s_theFrameBuffer->m_x = x;
+        s_theFrameBuffer->m_y = y;
         s_theFrameBuffer->m_lock.unlock();
     }
 }
@@ -1047,7 +1046,7 @@ void FrameBuffer::displayTexture(GLuint text, int x0, int y0, int width, int hei
     s_gl.glVertexPointer(3, GL_FLOAT, 0, verts);
     s_gl.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    s_gl.glViewport(m_x, m_y, m_FBwidth, m_FBheight);
+    s_gl.glViewport(0, 0, m_FBwidth, m_FBheight);
     s_gl.glDisable(GL_BLEND);
 }
 
