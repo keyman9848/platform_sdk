@@ -53,7 +53,6 @@ ColorBuffer *ColorBuffer::create(int p_width, int p_height,
 
     ColorBuffer *cb = new ColorBuffer();
 
-
     s_gl.glGenTextures(1, &cb->m_tex);
     s_gl.glBindTexture(GL_TEXTURE_2D, cb->m_tex);
     int nComp = (texInternalFormat == GL_RGB ? 3 : 4);
@@ -314,10 +313,23 @@ bool ColorBuffer::post()
 
 void ColorBuffer::drawTexQuad()
 {
-    GLfloat verts[] = { -1.0f, -1.0f, 0.0f,
-                         -1.0f, +1.0f, 0.0f,
-                         +1.0f, -1.0f, 0.0f,
-                         +1.0f, +1.0f, 0.0f };
+    GLfloat verts[] = { -0.5f, -0.5f, 0.0f,
+                         -0.5f, +0.5f, 0.0f,
+                         +0.5f, -0.5f, 0.0f,
+                         +0.5f, +0.5f, 0.0f };
+
+    FrameBuffer *fb = FrameBuffer::getFB();
+
+    if(fb) {
+        verts[0] *= fb->getWidth();
+        verts[1] *= fb->getHeight();
+        verts[3] *= fb->getWidth();
+        verts[4] *= fb->getHeight();
+        verts[6] *= fb->getWidth();
+        verts[7] *= fb->getHeight();
+        verts[9] *= fb->getWidth();
+        verts[10] *= fb->getHeight();
+    }
 
     GLfloat tcoords[] = { 0.0f, 1.0f,
                            0.0f, 0.0f,
