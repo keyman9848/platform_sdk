@@ -17,8 +17,7 @@ bool AndroVM_initOpenGLRenderer(int, int, int, OnPostFn, void*);
 void AndroVM_setCallbackRotation(void (* fn)(float));
 void AndroVM_repaintOpenGLDisplay();
 void AndroVM_setDPI(int);
-void AndroVM_setViewport(float width, float height);
-void AndroVM_scrollViewport(float x, float y);
+void AndroVM_setViewport(int x0, int y0, int width, int height);
 float AndroVM_getDisplayRotation();
 bool AndroVM_registerOGLCallback(OnPostFn, void*);
 void AndroVM_setLogo(char* logo, int width, int height);
@@ -115,14 +114,9 @@ void AndroVM_setDPI(int d) {
     setDPI(d);
 }
 
-void AndroVM_setViewport(float width, float height)
+void AndroVM_setViewport(int x0, int y0, int width, int height)
 {
-    FrameBuffer::setViewport(width, height);
-}
-
-void AndroVM_scrollViewport(float x, float y)
-{
-    FrameBuffer::scrollViewport(x, y);
+    FrameBuffer::setViewport(x0, y0, width, height);
 }
 
 void AndroVM_setLogo(char* logo, int width, int height)
