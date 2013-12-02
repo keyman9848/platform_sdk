@@ -843,7 +843,6 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
             return ret;
         }
 
-
         // bind the subwindow eglSurface
         if (!bindSubwin_locked()) {
             fprintf(stderr, "FrameBuffer::post eglMakeCurrent failed\n");
@@ -852,14 +851,12 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
         }
 
         //
-        // render the color buffer to the window
-        //
-        s_gl.glPushMatrix();
-
-        //
         // Send framebuffer to callback
         //
         if (m_onPost) {
+            s_gl.glMatrixMode(GL_PROJECTION);
+            s_gl.glPushMatrix();
+            initGLState(m_width, m_height);
             s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, m_framebuffer);
             s_gl.glViewport(0, 0, m_width, m_height);
 
@@ -875,22 +872,29 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
             }
             s_gl.glBindFramebufferOES(GL_FRAMEBUFFER_OES, 0);
             s_gl.glViewport(0, 0, m_FBwidth, m_FBheight);
+            s_gl.glMatrixMode(GL_PROJECTION);
+            s_gl.glPopMatrix();
+            s_gl.glMatrixMode(GL_MODELVIEW);
         }
 
+        //
+        // render the color buffer to the window
+        //
+        s_gl.glPushMatrix();
         s_gl.glTranslatef(m_x, m_y, 0.0f);
         s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
         s_gl.glClear(GL_COLOR_BUFFER_BIT);
 
         ret = (*c).second.cb->post();
 
+        if(m_windowHighlight) {
+            displayWindowHighlight();
+        }
+
         s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
 
         if(m_textLogo) {
             displayLogo();
-        }
-
-        if(m_windowHighlight) {
-            displayWindowHighlight();
         }
 
         s_gl.glPopMatrix();
@@ -1019,17 +1023,25 @@ void FrameBuffer::setTexture(char* data, int width, int height, GLuint* texture)
 
 void FrameBuffer::displayTexture(GLuint text, int x0, int y0, int width, int height)
 {
-    GLfloat verts[] = { -1.0f, -1.0f, 0.0f,
-                        -1.0f, +1.0f, 0.0f,
-                        +1.0f, -1.0f, 0.0f,
-                        +1.0f, +1.0f, 0.0f };
+    GLfloat verts[12];
+
+    verts[0] = x0;
+    verts[1] = y0;
+    verts[2] = 0.0f;
+    verts[3] = verts[0];
+    verts[4] = verts[1]+height;
+    verts[5] = 0.0f;
+    verts[6] = verts[0]+width;
+    verts[7] = verts[1];
+    verts[8] = 0.0f;
+    verts[9] = verts[0]+width;
+    verts[10] = verts[1]+height;
+    verts[11] = 0.0f;
 
     GLfloat tcoords[] = { 0.0f, 1.0f,
                           0.0f, 0.0f,
                           1.0f, 1.0f,
                           1.0f, 0.0f };
-
-    s_gl.glViewport(x0, y0, width, height);
 
     s_gl.glEnable(GL_BLEND);
     s_gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1046,19 +1058,23 @@ void FrameBuffer::displayTexture(GLuint text, int x0, int y0, int width, int hei
     s_gl.glVertexPointer(3, GL_FLOAT, 0, verts);
     s_gl.glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    s_gl.glViewport(0, 0, m_FBwidth, m_FBheight);
     s_gl.glDisable(GL_BLEND);
 }
 
 void FrameBuffer::displayLogo()
 {
     if(m_textLogo) {
-        int diag = m_FBwidth + m_FBheight;
+        int diag = m_width + m_height;
         int w = (int)(diag/8.0);
         int h = (int)(w/m_logoRatio);
-        int pad = (int)((8.0*m_FBwidth)/m_width);
+        int pad = 8;
 
-        displayTexture(m_textLogo, pad, pad, w, h);
+        if(m_zRot == 90.0f || m_zRot == 270.0f) {
+            displayTexture(m_textLogo, -m_height/2.0f+pad, -m_width/2.0f+pad, w, h);
+        }
+        else {
+            displayTexture(m_textLogo, -m_width/2.0f+pad, -m_height/2.0f+pad, w, h);
+        }
     }
 }
 
@@ -1105,11 +1121,23 @@ void FrameBuffer::setWindowHighlight(bool value)
 
 void FrameBuffer::displayWindowHighlight()
 {
-    GLfloat verts[] = { +0.99f, -0.99f, 0.0f,
-                        +0.99f, +0.99f, 0.0f,
-                        -0.99f, +0.99f, 0.0f,
-                        -0.99f, -0.99f, 0.0f,
-                        +0.99f, -0.99f, 0.0f };
+    GLfloat verts[] = { +0.495f, -0.495f, 0.0f,
+                        +0.495f, +0.495f, 0.0f,
+                        -0.495f, +0.495f, 0.0f,
+                        -0.495f, -0.495f, 0.0f,
+                        +0.495f, -0.495f, 0.0f };
+
+    verts[0] *= m_width;
+    verts[1] *= m_height;
+    verts[3] *= m_width;
+    verts[4] *= m_height;
+    verts[6] *= m_width;
+    verts[7] *= m_height;
+    verts[9] *= m_width;
+    verts[10] *= m_height;
+    verts[12] *= m_width;
+    verts[13] *= m_height;
+
     s_gl.glDisable(GL_TEXTURE_2D);
 
     /*
@@ -1119,6 +1147,7 @@ void FrameBuffer::displayWindowHighlight()
     s_gl.glEnable(GL_LINE_SMOOTH);
     s_gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     */
+
     s_gl.glEnableClientState(GL_VERTEX_ARRAY);
     s_gl.glVertexPointer(3, GL_FLOAT, 0, verts);
     s_gl.glLineWidth(3);
@@ -1170,23 +1199,24 @@ void FrameBuffer::cameraEffect(int duration)
         s_theFrameBuffer->bindSubwin_locked();
 
         s_gl.glPushMatrix();
+        // translation (scrolling)
+        s_gl.glTranslatef(m_x, m_y, 0.0f);
         // rotation according to VM orientation
         s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
         // Vertical flip
         s_gl.glScalef(1, -1, 1);
 
         // display captured color frambuffer in background
-        displayTexture(originalTex, 0, 0, m_FBwidth, m_FBheight);
+        displayTexture(originalTex, -m_width/2.0f, -m_height/2.0, m_width, m_height);
         // shrinking factor non-linear
         float factor = 1.0 - 0.98*elapsed*elapsed/duration/duration;
-        int w = m_FBwidth*factor;
-        int h = m_FBheight*factor;
+        int w = m_width*factor;
+        int h = m_height*factor;
         // display grayscale shrinked captured image
-        displayTexture(greyTex, (m_FBwidth-w)/2, (m_FBheight-h)/2, w, h);
+        displayTexture(greyTex, -w/2.0f, -h/2.0f, w, h);
         s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
         elapsed = GetCurrentTimeMS() - start;
 
-        s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
         s_gl.glPopMatrix();
 
         s_theFrameBuffer->unbind_locked();
