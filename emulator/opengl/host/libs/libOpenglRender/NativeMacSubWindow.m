@@ -44,9 +44,10 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
     }
 
     /* (x,y) assume an upper-left origin, but Cocoa uses a lower-left origin */
-    NSRect content_rect = [win contentRectForFrameRect:[win frame]];
-    int cocoa_y = (int)content_rect.size.height - (y + height);
-    NSRect contentRect = NSMakeRect(x, cocoa_y, width, height);
+    // NSRect content_rect = [win contentRectForFrameRect:[win frame]];
+    // int cocoa_y = (int)content_rect.size.height - (y + height);
+    // Not for Qt !!!!, but x, y should be computed from the main window
+    NSRect contentRect = NSMakeRect(x, y, width, height);
 
     NSView *glView = [[EmuGLView alloc] initWithFrame:contentRect];
     if (glView) {

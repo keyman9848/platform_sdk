@@ -4,7 +4,7 @@
 extern "C" {
 int AndroVM_initLibrary();
 int AndroVM_FrameBuffer_initialize(int w, int h);
-int AndroVM_FrameBuffer_setupSubWindow(void *id, int w, int h, float zrot);
+int AndroVM_FrameBuffer_setupSubWindow(void *id, int x, int y, int w, int h, float zrot);
 int AndroVM_FrameBuffer_removeSubWindow();
 void *AndroVM_FrameBuffer_getSubWindow();
 int AndroVM_RenderServer_create(int p);
@@ -36,9 +36,9 @@ int AndroVM_FrameBuffer_initialize(int w, int h)
     return FrameBuffer::initialize(w, h, NULL, NULL);
 }
 
-int AndroVM_FrameBuffer_setupSubWindow(void *id, int w, int h, float zrot)
+int AndroVM_FrameBuffer_setupSubWindow(void *id, int x, int y, int w, int h, float zrot)
 {
-    return FrameBuffer::setupSubWindow((FBNativeWindowType)id, 0, 0, w, h, zrot);
+    return FrameBuffer::setupSubWindow((FBNativeWindowType)id, x, y, w, h, zrot);
 }
 
 int AndroVM_FrameBuffer_removeSubWindow() {
