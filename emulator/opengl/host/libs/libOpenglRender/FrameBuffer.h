@@ -48,6 +48,7 @@ class FrameBuffer
  public:
     static bool initialize(int width, int height, OnPostFn onPost, void* onPostContext);
     static bool registerOGLCallback(OnPostFn onPost, void* onPostContext);
+    static bool playScreenshotAnimation(void);
     static bool setupSubWindow(FBNativeWindowType p_window,
                                int x, int y,
                                int width, int height, float zRot);
