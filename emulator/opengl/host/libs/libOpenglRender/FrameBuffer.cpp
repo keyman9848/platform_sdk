@@ -887,10 +887,6 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
 
         ret = (*c).second.cb->post();
 
-        if(m_windowHighlight) {
-            displayWindowHighlight();
-        }
-
         s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
 
         if(m_textLogo) {
@@ -898,6 +894,16 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
         }
 
         s_gl.glPopMatrix();
+
+        if(m_windowHighlight) {
+            s_gl.glMatrixMode(GL_PROJECTION);
+            s_gl.glPushMatrix();
+            initGLState(1, 1);
+            displayWindowHighlight();
+            s_gl.glMatrixMode(GL_PROJECTION);
+            s_gl.glPopMatrix();
+            s_gl.glMatrixMode(GL_MODELVIEW);
+        }
 
         if (ret) {
             s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
@@ -926,7 +932,7 @@ void FrameBuffer::initGLState(float w, float h)
     s_gl.glOrthof(-w/2.0f, w/2.0f, -h/2.0f, h/2.0f, -1.0, 1.0);
     s_gl.glMatrixMode(GL_MODELVIEW);
     s_gl.glLoadIdentity();
-    s_gl.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    s_gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void FrameBuffer::setViewport(float width, float height)
@@ -1127,26 +1133,15 @@ void FrameBuffer::displayWindowHighlight()
                         -0.495f, -0.495f, 0.0f,
                         +0.495f, -0.495f, 0.0f };
 
-    verts[0] *= m_width;
-    verts[1] *= m_height;
-    verts[3] *= m_width;
-    verts[4] *= m_height;
-    verts[6] *= m_width;
-    verts[7] *= m_height;
-    verts[9] *= m_width;
-    verts[10] *= m_height;
-    verts[12] *= m_width;
-    verts[13] *= m_height;
-
     s_gl.glDisable(GL_TEXTURE_2D);
 
     /*
     s_gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     s_gl.glEnable(GL_BLEND);
+    */
 
     s_gl.glEnable(GL_LINE_SMOOTH);
     s_gl.glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    */
 
     s_gl.glEnableClientState(GL_VERTEX_ARRAY);
     s_gl.glVertexPointer(3, GL_FLOAT, 0, verts);
