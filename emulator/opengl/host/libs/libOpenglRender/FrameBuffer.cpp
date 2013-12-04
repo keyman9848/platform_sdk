@@ -1200,19 +1200,27 @@ void FrameBuffer::cameraEffect(int duration)
         s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
         // Vertical flip
         s_gl.glScalef(1, -1, 1);
-
         // display captured color frambuffer in background
-        displayTexture(originalTex, -m_width/2.0f, -m_height/2.0, m_width, m_height);
+        displayTexture(originalTex, -m_width/2.0f, -m_height/2.0, m_width, m_height); 
+        s_gl.glPopMatrix();
+
         // shrinking factor non-linear
         float factor = 1.0 - 0.98*elapsed*elapsed/duration/duration;
         int w = m_width*factor;
         int h = m_height*factor;
+
+        // Center shrinked captured image
+        s_gl.glPushMatrix();
+        // rotation according to VM orientation
+        s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
+        // Vertical flip
+        s_gl.glScalef(1, -1, 1);
         // display grayscale shrinked captured image
         displayTexture(greyTex, -w/2.0f, -h/2.0f, w, h);
+        s_gl.glPopMatrix();
+
         s_egl.eglSwapBuffers(m_eglDisplay, m_eglSurface);
         elapsed = GetCurrentTimeMS() - start;
-
-        s_gl.glPopMatrix();
 
         s_theFrameBuffer->unbind_locked();
         s_theFrameBuffer->m_lock.unlock();
