@@ -52,7 +52,8 @@ EGLNativeWindowType createSubWindow(FBNativeWindowType p_window,
     NSView *glView = [[EmuGLView alloc] initWithFrame:contentRect];
     if (glView) {
         [[win contentView] addSubview:glView];
-        [win makeKeyAndOrderFront:nil];
+        // Will never return when calling showFullscreen
+        // [win makeKeyAndOrderFront:nil];
     }
 
     return (EGLNativeWindowType)glView;
