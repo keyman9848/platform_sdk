@@ -88,8 +88,8 @@ class FrameBuffer
 
     void setDisplayRotation(float zRot);
 
-    static void scrollViewport(float x, float y);
-    static void setViewport(float width, float height);
+    static void scrollViewport(int x, int y);
+    static void setViewport(int width, int height);
     static void setLogo(char* logo, int width, int height);
     static void setStartScreen(char* logo, int width, int height);
     static void setWindowHighlight(bool value);
@@ -99,7 +99,7 @@ class FrameBuffer
     ~FrameBuffer();
     HandleType genHandle();
     bool bindSubwin_locked();
-    void initGLState(float w, float h);
+    void initGLState(int w, int h);
     void displayLogo();
     void displayStartScreen();
     void displayTexture(GLuint text, int x0, int y0, int width, int height);
@@ -110,8 +110,8 @@ class FrameBuffer
  private:
     static FrameBuffer *s_theFrameBuffer;
     static HandleType s_nextHandle;
-    float m_x; // horizontal scroll
-    float m_y; // vertical scroll
+    int m_x; // horizontal scroll
+    int m_y; // vertical scroll
     int m_width; // Android width
     int m_height; // Android height
     int m_FBwidth; // FB width

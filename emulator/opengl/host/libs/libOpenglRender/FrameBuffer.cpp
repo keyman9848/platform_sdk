@@ -375,8 +375,8 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
 
 FrameBuffer::FrameBuffer(int p_width, int p_height,
                          OnPostFn onPost, void* onPostContext) :
-    m_x(0.0f),
-    m_y(0.0f),
+    m_x(0),
+    m_y(0),
     m_width(p_width),
     m_height(p_height),
     m_FBwidth(p_width),
@@ -925,17 +925,17 @@ bool FrameBuffer::repost()
     return false;
 }
 
-void FrameBuffer::initGLState(float w, float h)
+void FrameBuffer::initGLState(int w, int h)
 {
     s_gl.glMatrixMode(GL_PROJECTION);
     s_gl.glLoadIdentity();
-    s_gl.glOrthof(-w/2.0f, w/2.0f, -h/2.0f, h/2.0f, -1.0, 1.0);
+    s_gl.glOrthof(-w/2, (w-w/2), -h/2, (h-h/2), -1.0, 1.0);
     s_gl.glMatrixMode(GL_MODELVIEW);
     s_gl.glLoadIdentity();
     s_gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-void FrameBuffer::setViewport(float width, float height)
+void FrameBuffer::setViewport(int width, int height)
 {
     if (s_theFrameBuffer) {
 
@@ -950,7 +950,7 @@ void FrameBuffer::setViewport(float width, float height)
     }
 }
 
-void FrameBuffer::scrollViewport(float x, float y)
+void FrameBuffer::scrollViewport(int x, int y)
 {
     if (s_theFrameBuffer) {
         s_theFrameBuffer->m_lock.lock();
@@ -1204,7 +1204,7 @@ void FrameBuffer::cameraEffect(int duration)
         s_gl.glScalef(1, -1, 1);
 
         // display captured color frambuffer in background
-        displayTexture(originalTex, -m_width/2.0f, -m_height/2.0, m_width, m_height); 
+        displayTexture(originalTex, -m_width/2, -m_height/2, m_width, m_height);
         s_gl.glPopMatrix();
 
         // shrinking factor non-linear
