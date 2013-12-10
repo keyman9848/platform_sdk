@@ -993,17 +993,19 @@ bool FrameBuffer::registerOGLCallback(OnPostFn onPost, void* onPostContext)
         }
         s_theFrameBuffer->unbind_locked();
         s_theFrameBuffer->m_lock.unlock();
-
-        if(onPost == NULL) {
-            // Screen capture stopped.
-            // Let's play a nice visual effect.
-            s_theFrameBuffer->cameraEffect(250); // ms
-            // Need to refresh the screen after the visual effect
-            s_theFrameBuffer->repost();
-        }
     }
 
     return success;
+}
+
+bool FrameBuffer::playScreenshotAnimation(void)
+{
+    if (s_theFrameBuffer) {
+            // Let's play a nice visual effect.
+        s_theFrameBuffer->cameraEffect(250); // ms
+        // Need to refresh the screen after the visual effect
+        s_theFrameBuffer->repost();
+    }
 }
 
 void FrameBuffer::setTexture(char* data, int width, int height, GLuint* texture)
@@ -1200,6 +1202,7 @@ void FrameBuffer::cameraEffect(int duration)
         s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
         // Vertical flip
         s_gl.glScalef(1, -1, 1);
+
         // display captured color frambuffer in background
         displayTexture(originalTex, -m_width/2.0f, -m_height/2.0, m_width, m_height); 
         s_gl.glPopMatrix();

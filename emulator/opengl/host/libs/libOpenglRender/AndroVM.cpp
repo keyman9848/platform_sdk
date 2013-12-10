@@ -24,6 +24,7 @@ bool AndroVM_registerOGLCallback(OnPostFn, void*);
 void AndroVM_setLogo(char* logo, int width, int height);
 void AndroVM_setStartScreen(char* img, int width, int height);
 void AndroVM_setWindowHighlight(bool value);
+void AndroVM_playScreenshotAnimation(void);
 }
 
 int AndroVM_initLibrary()
@@ -138,4 +139,9 @@ void AndroVM_setStartScreen(char* logo, int width, int height)
 void AndroVM_setWindowHighlight(bool value)
 {
     FrameBuffer::setWindowHighlight(value);
+}
+
+void AndroVM_playScreenshotAnimation(void)
+{
+    FrameBuffer::playScreenshotAnimation();
 }
