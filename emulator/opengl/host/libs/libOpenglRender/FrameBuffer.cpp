@@ -1074,7 +1074,7 @@ void FrameBuffer::displayTexture(GLuint text, int x0, int y0, int width, int hei
 
 void FrameBuffer::displayLogo()
 {
-    if(m_textLogo) {
+    if (m_textLogo && m_logoRatio) {
         int diag = m_width + m_height;
         int w = (int)(diag/8.0);
         int h = (int)(w/m_logoRatio);
