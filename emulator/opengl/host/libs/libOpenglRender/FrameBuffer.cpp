@@ -861,8 +861,11 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
             s_gl.glViewport(0, 0, m_width, m_height);
 
             ret = (*c).second.cb->post();
-            if(m_textLogo)
+            if(m_textLogo) {
+                s_gl.glRotatef(-m_zRot, 0.0f, 0.0f, 1.0f);
                 displayLogo();
+                s_gl.glRotatef(m_zRot, 0.0f, 0.0f, 1.0f);
+            }
 
             if (ret) {
                 s_gl.glReadPixels(0, 0, m_width, m_height,
@@ -932,7 +935,7 @@ void FrameBuffer::initGLState(int w, int h)
     s_gl.glOrthof(-w/2, (w-w/2), -h/2, (h-h/2), -1.0, 1.0);
     s_gl.glMatrixMode(GL_MODELVIEW);
     s_gl.glLoadIdentity();
-    s_gl.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    s_gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void FrameBuffer::setViewport(int width, int height)
