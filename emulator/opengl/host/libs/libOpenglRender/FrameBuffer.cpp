@@ -898,7 +898,7 @@ bool FrameBuffer::post(HandleType p_colorbuffer, bool needLock)
         if(m_windowHighlight) {
             s_gl.glMatrixMode(GL_PROJECTION);
             s_gl.glPushMatrix();
-            initGLState(1, 1);
+            initGLState(2, 2);
             displayWindowHighlight();
             s_gl.glMatrixMode(GL_PROJECTION);
             s_gl.glPopMatrix();
@@ -933,7 +933,6 @@ void FrameBuffer::initGLState(int w, int h)
     s_gl.glMatrixMode(GL_MODELVIEW);
     s_gl.glLoadIdentity();
     s_gl.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    fprintf(stderr, "float %d:%d:%d:%d", -w/2, (w-w/2), -h/2, (h-h/2));
 }
 
 void FrameBuffer::setViewport(int width, int height)
@@ -1130,11 +1129,11 @@ void FrameBuffer::setWindowHighlight(bool value)
 
 void FrameBuffer::displayWindowHighlight()
 {
-    GLfloat verts[] = { +0.495f, -0.495f, 0.0f,
-                        +0.495f, +0.495f, 0.0f,
-                        -0.495f, +0.495f, 0.0f,
-                        -0.495f, -0.495f, 0.0f,
-                        +0.495f, -0.495f, 0.0f };
+    GLfloat verts[] = { +0.99f, -0.99f, 0.0f,
+                        +0.99f, +0.99f, 0.0f,
+                        -0.99f, +0.99f, 0.0f,
+                        -0.99f, -0.99f, 0.0f,
+                        +0.99f, -0.99f, 0.0f };
 
     s_gl.glDisable(GL_TEXTURE_2D);
 
