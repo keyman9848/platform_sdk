@@ -932,7 +932,8 @@ void FrameBuffer::initGLState(int w, int h)
     s_gl.glOrthof(-w/2, (w-w/2), -h/2, (h-h/2), -1.0, 1.0);
     s_gl.glMatrixMode(GL_MODELVIEW);
     s_gl.glLoadIdentity();
-    s_gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    s_gl.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    fprintf(stderr, "float %d:%d:%d:%d", -w/2, (w-w/2), -h/2, (h-h/2));
 }
 
 void FrameBuffer::setViewport(int width, int height)
