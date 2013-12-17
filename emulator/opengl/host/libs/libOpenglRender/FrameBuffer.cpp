@@ -408,7 +408,7 @@ FrameBuffer::FrameBuffer(int p_width, int p_height,
     m_fbImage(NULL),
     m_glVendor(NULL),
     m_glRenderer(NULL),
-    m_glVersion(NULL)
+    m_glVersion(NULL),
     m_framebuffer(0),
     m_textLogo(0),
     m_logoRatio(0),
