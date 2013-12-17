@@ -61,6 +61,12 @@ class FrameBuffer
     int getWidth() const { return m_width; }
     int getHeight() const { return m_height; }
 
+    void getGLStrings(const char** vendor, const char** renderer, const char** version) const {
+        *vendor = m_glVendor;
+        *renderer = m_glRenderer;
+        *version = m_glVersion;
+    }
+
     HandleType createRenderContext(int p_config, HandleType p_share, bool p_isGL2 = false);
     HandleType createWindowSurface(int p_config, int p_width, int p_height);
     HandleType createColorBuffer(int p_width, int p_height, GLenum p_internalFormat);
@@ -146,6 +152,11 @@ class FrameBuffer
     OnPostFn m_onPost;
     void* m_onPostContext;
     unsigned char* m_fbImage;
+
+    const char* m_glVendor;
+    const char* m_glRenderer;
+    const char* m_glVersion;
+
     GLuint m_framebuffer;
 
     GLuint m_textLogo;
