@@ -147,7 +147,9 @@ public:
     bool setBufferData(GLenum target,GLsizeiptr size,const GLvoid* data,GLenum usage);
     bool setBufferSubData(GLenum target,GLintptr offset,GLsizeiptr size,const GLvoid* data);
     const char * getExtensionString();
+    const char * getVendorString() const;
     const char * getRendererString() const;
+    const char * getVersionString() const;
     void getGlobalLock();
     void releaseGlobalLock();
     virtual GLSupport*  getCaps(){return &s_glSupport;};
@@ -176,6 +178,7 @@ public:
     virtual bool glGetFixedv(GLenum pname, GLfixed *params);
 
 protected:
+    static void buildStrings(const char* baseVendor, const char* baseRenderer, const char* baseVersion, const char* version);
     virtual bool needConvert(GLESConversionArrays& fArrs,GLint first,GLsizei count,GLenum type,const GLvoid* indices,bool direct,GLESpointer* p,GLenum array_id) = 0;
     void convertDirect(GLESConversionArrays& fArrs,GLint first,GLsizei count,GLenum array_id,GLESpointer* p);
     void convertDirectVBO(GLESConversionArrays& fArrs,GLint first,GLsizei count,GLenum array_id,GLESpointer* p);
@@ -190,7 +193,6 @@ protected:
     GLint                 m_unpackAlignment;
     ArraysMap             m_map;
     static std::string*   s_glExtensions;
-    static std::string    s_glRenderer;
     static GLSupport      s_glSupport;
 
 private:
@@ -205,6 +207,10 @@ private:
     unsigned int          m_elementBuffer;
     GLuint                m_renderbuffer;
     GLuint                m_framebuffer;
+
+    static std::string    s_glVendor;
+    static std::string    s_glRenderer;
+    static std::string    s_glVersion;
 };
 
 #endif

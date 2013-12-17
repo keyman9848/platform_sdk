@@ -335,6 +335,14 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     fb->initGLState(width, height);
 
     //
+    // Cache the GL strings so we don't have to think about threading or
+    // current-context when asked for them.
+    //
+    fb->m_glVendor = (const char*)s_gl.glGetString(GL_VENDOR);
+    fb->m_glRenderer = (const char*)s_gl.glGetString(GL_RENDERER);
+    fb->m_glVersion = (const char*)s_gl.glGetString(GL_VERSION);
+
+    //
     // Allocate space for the onPost framebuffer image
     //
     if (onPost) {
@@ -398,6 +406,9 @@ FrameBuffer::FrameBuffer(int p_width, int p_height,
     m_onPost(onPost),
     m_onPostContext(onPostContext),
     m_fbImage(NULL),
+    m_glVendor(NULL),
+    m_glRenderer(NULL),
+    m_glVersion(NULL)
     m_framebuffer(0),
     m_textLogo(0),
     m_logoRatio(0),
