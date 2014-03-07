@@ -27,6 +27,8 @@
 
 typedef std::set<RenderThread *> RenderThreadsSet;
 
+extern int hasToStop;
+
 RenderServer::RenderServer() :
     m_listenSock(NULL),
     m_exiting(false)
@@ -85,6 +87,10 @@ int RenderServer::Main()
     int lasttime_ping, lasttime_pong;
 
 restart_renderserver_main:
+    if (hasToStop) {
+        m_exiting = true;
+        return 0;
+    }
 
     if (gRendererStreamMode == STREAM_MODE_TCPCLI) {
         if (!gRendererVMIP) {
@@ -190,7 +196,7 @@ restart_renderserver_main:
              case TCPCLI_STOP:
               delete tcpcli_main;
               return 0;
-             case OPENGL_PING: 
+             case OPENGL_PING:
               tcpcli_command = OPENGL_PONG;
               if (tcpcli_main->writeFully(&tcpcli_command, sizeof(tcpcli_command))) {
                   fprintf(stderr, "Error sending PONG, closing connection\n");

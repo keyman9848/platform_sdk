@@ -30,12 +30,14 @@ public:
     bool isExiting() const { return m_exiting; }
 
     int m_port;
+
 private:
     RenderServer();
 
 private:
     SocketStream *m_listenSock;
     bool m_exiting;
+
 };
 
 #endif
