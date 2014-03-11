@@ -14,12 +14,13 @@
 * limitations under the License.
 */
 #include <GLcommon/RangeManip.h>
+#include <stdio.h>
 
 
 bool Range::rangeIntersection(const Range& r,Range& rOut) const {
-    if(m_start > r.getEnd() || r.getStart() > m_end) return false;
-    int max_start = (m_start > r.getStart())? m_start:r.getStart();
-    int min_end = (m_end < r.getEnd())?m_end:r.getEnd();
+    if(getStart() > r.getEnd() || r.getStart() > getEnd()) return false;
+    int max_start = (getStart() > r.getStart())? getStart():r.getStart();
+    int min_end = (getEnd() < r.getEnd())? getEnd():r.getEnd();
     int size = min_end - max_start;
     if(size) {
         rOut.setRange(max_start,min_end-max_start);
@@ -29,9 +30,9 @@ bool Range::rangeIntersection(const Range& r,Range& rOut) const {
 }
 
 bool Range::rangeUnion(const Range& r,Range& rOut) const {
-    if(m_start > r.getEnd() || r.getStart() > m_end) return false;
-    int min_start = (m_start < r.getStart())?m_start:r.getStart();
-    int max_end = (m_end > r.getEnd())?m_end:r.getEnd();
+    if(getStart() > r.getEnd() || r.getStart() > getEnd()) return false;
+    int min_start = (getStart() < r.getStart())?getStart():r.getStart();
+    int max_end = (getEnd() > r.getEnd())?getEnd():r.getEnd();
     int size =  max_end - min_start;
     if(size) {
         rOut.setRange(min_start,max_end-min_start);
@@ -40,87 +41,71 @@ bool Range::rangeUnion(const Range& r,Range& rOut) const {
     return false;
 }
 
-void RangeList::addRange(const Range& r) {
-    list.push_back(r);
-}
-
-void RangeList::addRanges(const RangeList& rl) {
-    for(int i =0; i< rl.size();i++) {
-       addRange(rl.list[i]);
-    }
-}
-
 void RangeList::delRanges(const RangeList& rl,RangeList& deleted) {
-    for(int i =0; i< rl.size();i++) {
-       delRange(rl.list[i],deleted);
+    fprintf(stderr, "RangeList::delRanges() in %ld ", size());
+
+    for(iterator it = rl.begin(); it != rl.end(); ++it) {
+        delRange(*it,deleted);
     }
-}
 
-bool RangeList::empty() const{
-    return list.empty();
-}
-
-int  RangeList::size() const{
-    return list.size();
-}
-void RangeList::clear() {
-    return list.clear();
-}
-
-void RangeList::erase(unsigned int i) {
-    if(i > list.size()) return;
-    list.erase(list.begin() +i);
+    fprintf(stderr, "out %ld \n", size());
 }
 
 void RangeList::delRange(const Range& r,RangeList& deleted) {
     if(r.getSize() == 0) return;
 
     Range intersection;
-    Range temp;
-    // compare new rect to each and any of the rects on the list
-    for (int i=0;i<(int)list.size();i++) { // i must be signed for i-- below
-     // if there is intersection
-     if (r.rangeIntersection(list[i],intersection)) {
-             Range old=list[i];
-         // remove old as it is about to be split
-         erase(i);
-         i--;
-         if (intersection!=old) { // otherwise split:
-             //intersection on right side
-             if(old.getStart() != intersection.getStart()) {
-                 list.insert(list.begin(),Range(old.getStart(),intersection.getStart() - old.getStart()));
-             }
+    RangeList newList;
 
-             //intersection on left side
-             if(old.getEnd() != intersection.getEnd()) {
-                 list.insert(list.begin(),Range(intersection.getEnd(),old.getEnd() - intersection.getEnd()));
-             }
-         }
-         deleted.addRange(intersection);
-     }
- }
+    iterator it=lower_bound(r);
+
+    // if there is intersection
+    for(iterator it = begin(); it != end(); ++it) {
+
+        if(r.rangeIntersection(*it, intersection)) {
+
+            if (intersection!=*it) { // otherwise split:
+                //intersection on right side
+                if(it->getStart() != intersection.getStart()) {
+                    newList.insert(it,Range(it->getStart(),intersection.getStart() - it->getStart()));
+                }
+
+                //intersection on left side
+                if(it->getEnd() != intersection.getEnd()) {
+                    newList.insert(it,Range(intersection.getEnd(),it->getEnd() - intersection.getEnd()));
+                }
+            }
+            deleted.addRange(intersection);
+        } else {
+            newList.insert(newList.end(), *it);
+        }
+    }
+
+    operator=(newList);
 }
 
 void RangeList::merge() {
-    if(list.empty()) return;
+    fprintf(stderr, "RangeList::merge() in %ld ", size());
 
-    Range temp;
-    bool changed;
+    if(empty()) return;
 
-    do { // re-run if changed in last run
-        changed=0;
-        // run for each combinations of two rects in the list
-        for (int i=0;i<(((int)list.size())-1) && !changed ;i++)
-        {
-            for (int j=i+1;j<(int)list.size() && !changed ;j++)
-            {
-               if (list[i].rangeUnion(list[j],temp)) {
-                    // are them exactly one on left of the other
-                    list[i] = temp;
-                    erase(j);
-                    changed=1;
-               }
-            }
+    RangeList newList;
+    RangeList::iterator it = begin();
+    Range current = *it;
+    it++;
+
+    while(it != end()) {
+        if(current.getEnd() >= it->getStart()) {
+            current.second = std::max(current.second, it->second);
+        } else {
+            newList.insert(newList.end(), current);
+            current = *it;
         }
-    } while (changed);
+        it++;
+    }
+    newList.insert(newList.end(), current);
+
+    operator=(newList);
+
+    fprintf(stderr, "out %ld \n", size());
 }

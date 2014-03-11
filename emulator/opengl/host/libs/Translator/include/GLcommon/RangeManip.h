@@ -16,51 +16,33 @@
 #ifndef RANGE_H
 #define RANGE_H
 
-#include <vector>
+#include <set>
 
-class Range {
+class Range : public std::pair<int, int> {
 
 public:
-    Range():m_start(0),m_end(0),m_size(0){};
-    Range(int start,int size):m_start(start),m_end(start+size),m_size(size){};
-    Range(const Range& r):m_start(r.m_start),m_end(r.m_end),m_size(r.m_size){};
-    void setRange(int start,int size){m_start = start; m_end = start+size; m_size = size;};
-    inline int getStart() const{return m_start;};
-    inline int getEnd() const{return m_end;};
-    inline int getSize() const{return m_size;};
+    Range():pair(){}
+    Range(int start,int size):pair(start, start+size){}
+    Range(const Range& r):pair(r){}
+    void setRange(int start,int size) {pair::operator=(Range(start, size));}
+    inline int getStart() const{return first;}
+    inline int getEnd() const{return second;}
+    inline int getSize() const{return second-first;}
     Range& operator=(const Range& r) {
-        m_start = r.m_start;
-        m_end = r.m_end;
-        m_size = r.m_size;
+        pair::operator=(r);
         return *this;
     }
-    bool operator ==(const Range& r) const {
-        return m_start == r.m_start && m_size == r.m_size && m_end == r.m_end;
-    }
-    bool operator !=(const Range& r) const {return !((*this) == r);};
     bool rangeIntersection(const Range& r,Range& rOut) const ;
     bool rangeUnion(const Range& r,Range& rOut) const ;
-
-private:
-    int m_start;
-    int m_end;
-    int m_size;
 };
 
-class RangeList {
+class RangeList : public std::set<Range> {
 public:
-      void addRange(const Range& r);
-      void addRanges(const RangeList& rl);
+      void addRange(const Range& r) { insert(r); }
+      void addRanges(const RangeList& rl) { insert(rl.begin(), rl.end()); }
       void delRange(const Range& r,RangeList& deleted);
       void delRanges(const RangeList& rl,RangeList& deleted);
-      bool empty() const;
       void merge();
-      int  size() const;
-      void clear();
-      Range& operator[](unsigned int i){return list[i];};
-private:
-  void erase(unsigned int i);
-  std::vector<Range> list;
 };
 
 
