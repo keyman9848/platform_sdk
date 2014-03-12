@@ -297,9 +297,9 @@ int bytesRangesToIndices(RangeList& ranges,GLESpointer* p,GLushort* indices) {
     int offset = p->getBufferOffset();
 
     int n = 0;
-    for(int i=0;i<ranges.size();i++) {
-        int startIndex = (ranges[i].getStart() - offset) / stride;
-        int nElements = ranges[i].getSize()/attribSize;
+    for(RangeList::iterator it = ranges.begin(); it != ranges.end(); ++it) {
+        int startIndex = (it->getStart() - offset) / stride;
+        int nElements = it->getSize()/attribSize;
         for(int j=0;j<nElements;j++) {
             indices[n++] = startIndex+j;
         }
