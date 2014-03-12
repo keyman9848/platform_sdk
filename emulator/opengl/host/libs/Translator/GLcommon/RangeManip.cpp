@@ -42,13 +42,11 @@ bool Range::rangeUnion(const Range& r,Range& rOut) const {
 }
 
 void RangeList::delRanges(const RangeList& rl,RangeList& deleted) {
-    fprintf(stderr, "RangeList::delRanges() in %ld ", size());
 
     for(iterator it = rl.begin(); it != rl.end(); ++it) {
         delRange(*it,deleted);
     }
 
-    fprintf(stderr, "out %ld \n", size());
 }
 
 void RangeList::delRange(const Range& r,RangeList& deleted) {
@@ -85,8 +83,6 @@ void RangeList::delRange(const Range& r,RangeList& deleted) {
 }
 
 void RangeList::merge() {
-    fprintf(stderr, "RangeList::merge() in %ld ", size());
-
     if(empty()) return;
 
     RangeList newList;
@@ -106,6 +102,4 @@ void RangeList::merge() {
     newList.insert(newList.end(), current);
 
     operator=(newList);
-
-    fprintf(stderr, "out %ld \n", size());
 }
