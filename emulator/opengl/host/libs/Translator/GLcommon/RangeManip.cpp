@@ -48,6 +48,14 @@ void RangeList::delRanges(const RangeList& rl,RangeList& deleted) {
 
 }
 
+/**
+ * Remove a range from the range list.
+ * Range can be not a member of the container but can intersect
+ * others members of the container.
+ *
+ * Previous version used unsorted list and algorithm complexity was N2.
+ * Current algorithm complexity is N
+ */
 void RangeList::delRange(const Range& r,RangeList& deleted) {
     if(r.getSize() == 0) return;
 
@@ -81,6 +89,13 @@ void RangeList::delRange(const Range& r,RangeList& deleted) {
     operator=(newList);
 }
 
+/**
+ * Reduce RangeListe size by merging contigus or overlapping ranges
+ * Previous version used unsorted list and was buggy
+ * Algorithm complexity was N2, and size was increasing (no merge)
+ *
+ * Current algorithm complexity is N and merge is effective (size decrease)
+ */
 void RangeList::merge() {
     if(empty()) return;
 

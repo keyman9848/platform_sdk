@@ -18,6 +18,12 @@
 
 #include <set>
 
+/**
+ * Use std::pair to describe a Range [n1..n2]
+ * std::pair provides relational operators
+ * operators <, >, <= and >= perform a lexicographical
+ * comparison on the sequence formed by members first and second
+ */
 class Range : public std::pair<int, int> {
 
 public:
@@ -36,6 +42,11 @@ public:
     bool rangeUnion(const Range& r,Range& rOut) const ;
 };
 
+/**
+ * Use std::set to store Range list
+ * Sets are containers that store unique elements following a specific order.
+ * The order is defined by the operator < () from std::pair
+ */
 class RangeList : public std::set<Range> {
 public:
       void addRange(const Range& r) { insert(r); }
