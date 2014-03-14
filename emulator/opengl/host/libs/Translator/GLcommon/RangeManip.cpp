@@ -14,7 +14,6 @@
 * limitations under the License.
 */
 #include <GLcommon/RangeManip.h>
-#include <stdio.h>
 
 
 bool Range::rangeIntersection(const Range& r,Range& rOut) const {
