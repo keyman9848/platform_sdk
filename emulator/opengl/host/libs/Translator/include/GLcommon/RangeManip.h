@@ -17,6 +17,7 @@
 #define RANGE_H
 
 #include <set>
+#include <utility>
 
 /**
  * Use std::pair to describe a Range [n1..n2]
