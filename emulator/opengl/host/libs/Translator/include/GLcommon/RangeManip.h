@@ -19,24 +19,26 @@
 #include <set>
 #include <utility>
 
+typedef std::pair<int, int> intpair;
+
 /**
  * Use std::pair to describe a Range [n1..n2]
  * std::pair provides relational operators
  * operators <, >, <= and >= perform a lexicographical
  * comparison on the sequence formed by members first and second
  */
-class Range : public std::pair<int, int> {
+class Range : public intpair {
 
 public:
-    Range():pair(){}
-    Range(int start,int size):pair(start, start+size){}
-    Range(const Range& r):pair(r){}
-    void setRange(int start,int size) {pair::operator=(Range(start, size));}
+    Range():intpair(){}
+    Range(int start,int size):intpair(start, start+size){}
+    Range(const Range& r):intpair(r){}
+    void setRange(int start,int size) {intpair::operator=(Range(start, size));}
     inline int getStart() const{return first;}
     inline int getEnd() const{return second;}
     inline int getSize() const{return second-first;}
     Range& operator=(const Range& r) {
-        pair::operator=(r);
+        intpair::operator=(r);
         return *this;
     }
     bool rangeIntersection(const Range& r,Range& rOut) const ;
