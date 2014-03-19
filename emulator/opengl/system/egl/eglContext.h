@@ -23,7 +23,8 @@ struct EGLContext_t {
 
     enum {
         IS_CURRENT      =   0x00010000,
-        NEVER_CURRENT   =   0x00020000
+        NEVER_CURRENT   =   0x00020000,
+        TO_DELETE       =   0x00040000
     };
 
     EGLContext_t(EGLDisplay dpy, EGLConfig config, EGLContext_t* shareCtx);

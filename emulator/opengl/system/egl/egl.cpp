@@ -23,6 +23,7 @@
 #include "GLClientState.h"
 #include "GLSharedGroup.h"
 #include "eglContext.h"
+#include "eglSurface.h"
 #include "ClientAPIExts.h"
 
 #include "GLEncoder.h"
@@ -31,6 +32,10 @@
 #endif
 
 #include <system/window.h>
+
+// The one and only supported display object.
+static eglDisplay s_display;
+
 
 template<typename T>
 static T setErrorFunc(GLint error, T returnValue) {
@@ -161,49 +166,7 @@ EGLContext_t::~EGLContext_t()
 }
 
 // ----------------------------------------------------------------------------
-//egl_surface_t
 
-//we don't need to handle depth since it's handled when window created on the host
-
-struct egl_surface_t {
-
-    EGLDisplay          dpy;
-    EGLConfig           config;
-
-
-    egl_surface_t(EGLDisplay dpy, EGLConfig config, EGLint surfaceType);
-    virtual     ~egl_surface_t();
-
-    virtual     void        setSwapInterval(int interval) = 0;
-    virtual     EGLBoolean  swapBuffers() = 0;
-
-    EGLint      getSwapBehavior() const;
-    uint32_t    getRcSurface()   { return rcSurface; }
-    EGLint      getSurfaceType() { return surfaceType; }
-
-    EGLint      getWidth(){ return width; }
-    EGLint      getHeight(){ return height; }
-    void        setTextureFormat(EGLint _texFormat) { texFormat = _texFormat; }
-    EGLint      getTextureFormat() { return texFormat; }
-    void        setTextureTarget(EGLint _texTarget) { texTarget = _texTarget; }
-    EGLint      getTextureTarget() { return texTarget; }
-
-private:
-    //
-    //Surface attributes
-    //
-    EGLint      width;
-    EGLint      height;
-    EGLint      texFormat;
-    EGLint      texTarget;
-
-protected:
-    void        setWidth(EGLint w)  { width = w;  }
-    void        setHeight(EGLint h) { height = h; }
-
-    EGLint      surfaceType;
-    uint32_t    rcSurface; //handle to surface created via remote control
-};
 
 egl_surface_t::egl_surface_t(EGLDisplay dpy, EGLConfig config, EGLint surfaceType)
     : dpy(dpy), config(config), surfaceType(surfaceType), rcSurface(0)
@@ -303,6 +266,8 @@ egl_window_surface_t::~egl_window_surface_t() {
         nativeWindow->cancelBuffer(nativeWindow, buffer);
     }
     nativeWindow->common.decRef(&nativeWindow->common);
+
+    rcEnc->m_stream->flush();
 }
 
 void egl_window_surface_t::setSwapInterval(int interval)
@@ -367,6 +332,8 @@ egl_pbuffer_surface_t::~egl_pbuffer_surface_t()
         if (rcColorBuffer) rcEnc->rcCloseColorBuffer(rcEnc, rcColorBuffer);
         if (rcSurface)     rcEnc->rcDestroyWindowSurface(rcEnc, rcSurface);
     }
+
+    rcEnc->m_stream->flush();
 }
 
 EGLBoolean egl_pbuffer_surface_t::init(GLenum pixelFormat)
@@ -469,8 +436,6 @@ static const char *getGLString(int glEnum)
 
 // ----------------------------------------------------------------------------
 
-// The one and only supported display object.
-static eglDisplay s_display;
 
 static EGLClient_eglInterface s_eglIface = {
     getThreadInfo: getEGLThreadInfo,
@@ -633,6 +598,8 @@ EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWin
         setErrorReturn(EGL_BAD_ALLOC, EGL_NO_SURFACE);
     }
 
+    s_display.addSurface(surface);
+
     return surface;
 }
 
@@ -691,6 +658,8 @@ EGLSurface eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLin
     surface->setTextureFormat(texFormat);
     surface->setTextureTarget(texTarget);
 
+    s_display.addSurface(surface);
+
     return surface;
 }
 
@@ -710,6 +679,9 @@ EGLBoolean eglDestroySurface(EGLDisplay dpy, EGLSurface eglSurface)
     VALIDATE_SURFACE_RETURN(eglSurface, EGL_FALSE);
 
     egl_surface_t* surface(static_cast<egl_surface_t*>(eglSurface));
+
+    s_display.removeSurface(surface);
+
     delete surface;
 
     return EGL_TRUE;
@@ -888,6 +860,7 @@ EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config, EGLContext share_c
     context->version = version;
     context->rcContext = rcContext;
 
+    s_display.addContext(context);
 
     return context;
 }
@@ -901,15 +874,45 @@ EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
 
     if (getEGLThreadInfo()->currentContext == context)
     {
-        // eglMakeCurrent(dpy, EGL_NO_CONTEXT, EGL_NO_SURFACE, EGL_NO_SURFACE);
-        ALOGE("egl: destroying current context refused\n");
-        return EGL_FALSE;
+        // do not delete immediatly current context
+        context->flags |= EGLContext_t::TO_DELETE;
+        ALOGE("egl: current context mark for deletion\n");
+        return EGL_TRUE;
     }
 
     if (context->rcContext) {
         DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
         rcEnc->rcDestroyContext(rcEnc, context->rcContext);
         context->rcContext = 0;
+        rcEnc->m_stream->flush();
+    }
+
+    s_display.removeContext(context);
+
+    delete context;
+    return EGL_TRUE;
+}
+
+EGLBoolean destroyContext(EGLDisplay dpy, EGLContext ctx)
+{
+    VALIDATE_DISPLAY_INIT(dpy, EGL_FALSE);
+    VALIDATE_CONTEXT_RETURN(ctx, EGL_FALSE);
+
+    EGLContext_t * context = static_cast<EGLContext_t*>(ctx);
+
+    if (getEGLThreadInfo()->currentContext == context)
+    {
+        // do not delete immediatly current context
+        context->flags |= EGLContext_t::TO_DELETE;
+        ALOGE("egl: current context mark for deletion\n");
+        return EGL_TRUE;
+    }
+
+    if (context->rcContext) {
+        DEFINE_AND_VALIDATE_HOST_CONNECTION(EGL_FALSE);
+        rcEnc->rcDestroyContext(rcEnc, context->rcContext);
+        context->rcContext = 0;
+        rcEnc->m_stream->flush();
     }
 
     delete context;
@@ -987,7 +990,12 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
         tInfo->currentContext->flags &= ~EGLContext_t::IS_CURRENT;
 
     //Now make current
+    EGLContext_t * prevCtx = tInfo->currentContext;
     tInfo->currentContext = context;
+
+    if(prevCtx && (prevCtx->flags & EGLContext_t::TO_DELETE)) {
+        eglDestroyContext(&s_display, prevCtx);
+    }
 
     //Check maybe we need to init the encoder, if it's first eglMakeCurrent
     if (tInfo->currentContext) {

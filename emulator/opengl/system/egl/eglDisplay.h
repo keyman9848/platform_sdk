@@ -22,12 +22,15 @@
 #include <EGL/eglext.h>
 #include "EGLClientIface.h"
 #include <utils/KeyedVector.h>
-
+#include <utils/List.h>
 #include <ui/PixelFormat.h>
 
 #define ATTRIBUTE_NONE -1
 //FIXME: are we in this namespace?
 using namespace android;
+
+struct EGLContext_t;
+struct egl_surface_t;
 
 class eglDisplay
 {
@@ -37,6 +40,10 @@ public:
 
     bool initialize(EGLClient_eglInterface *eglIface);
     void terminate();
+    void addContext(EGLContext_t* ctx);
+    void removeContext(EGLContext_t* ctx);
+    void addSurface(egl_surface_t* surf);
+    void removeSurface(egl_surface_t* surf);
 
     int getVersionMajor() const { return m_major; }
     int getVersionMinor() const { return m_minor; }
@@ -84,6 +91,8 @@ private:
     char *m_versionString;
     char *m_vendorString;
     char *m_extensionString;
+    List<EGLContext_t*> m_contexts;
+    List<egl_surface_t*> m_surfaces;
 };
 
 #endif

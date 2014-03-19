@@ -16,6 +16,9 @@
 #include "eglDisplay.h"
 #include "HostConnection.h"
 #include <dlfcn.h>
+#include "eglContext.h"
+#include "eglSurface.h"
+
 
 static const int systemEGLVersionMajor = 1;
 static const int systemEGLVersionMinor = 4;
@@ -199,9 +202,18 @@ void eglDisplay::processConfigs()
     }
 }
 
+EGLBoolean destroyContext(EGLDisplay dpy, EGLContext ctx);
+
+/**
+ * eglTerminate releases resources associated with an EGL display connection.
+ * Termination marks all EGL resources associated with the EGL display connection for deletion.
+ * If contexts or surfaces associated with display is current to any thread,
+ * they are not released until they are no longer current as a result of eglMakeCurrent.
+ */
 void eglDisplay::terminate()
 {
     pthread_mutex_lock(&m_lock);
+   /*
     if (m_initialized) {
         m_initialized = false;
         delete [] m_configs;
@@ -220,8 +232,74 @@ void eglDisplay::terminate()
             m_extensionString = NULL;
         }
     }
+    */
+
+    // release surfaces
+    for(List<egl_surface_t*>::iterator it=m_surfaces.begin(); it!=m_surfaces.end(); ++it) {
+        egl_surface_t* surface = *it;
+        delete surface;
+    }
+    m_surfaces.clear();
+
+    // release contexts or mark them for deletion
+    for(List<EGLContext_t*>::iterator it=m_contexts.begin(); it!=m_contexts.end(); ++it) {
+        if((*it)->flags & EGLContext_t::IS_CURRENT) {
+            // context is current to a thread
+            (*it)->flags |= EGLContext_t::TO_DELETE;
+        }
+        else {
+            // delete context
+            destroyContext((EGLDisplay)this, (EGLContext)*it);
+            it = m_contexts.erase(it);
+        }
+    }
+ 
     pthread_mutex_unlock(&m_lock);
 }
+
+void eglDisplay::removeContext(EGLContext_t* ctx)
+{
+    pthread_mutex_lock(&m_lock);
+
+    for(List<EGLContext_t*>::iterator it=m_contexts.begin(); it!=m_contexts.end(); ++it) {
+        if((*it) == ctx) {
+            m_contexts.erase(it);
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&m_lock);
+}
+
+void eglDisplay::addContext(EGLContext_t* ctx)
+{
+    pthread_mutex_lock(&m_lock);
+    m_contexts.push_back(ctx);
+    pthread_mutex_unlock(&m_lock);
+}
+
+
+void eglDisplay::removeSurface(egl_surface_t* surf)
+{
+    pthread_mutex_lock(&m_lock);
+
+    for(List<egl_surface_t*>::iterator it=m_surfaces.begin(); it!=m_surfaces.end(); ++it) {
+        if((*it) == surf) {
+            m_surfaces.erase(it);
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&m_lock);
+}
+
+void eglDisplay::addSurface(egl_surface_t* surf)
+{
+    pthread_mutex_lock(&m_lock);
+    m_surfaces.push_back(surf);
+    pthread_mutex_unlock(&m_lock);
+}
+
 
 EGLClient_glesInterface *eglDisplay::loadGLESClientAPI(const char *libName,
                                                        EGLClient_eglInterface *eglIface,
