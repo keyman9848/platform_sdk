@@ -28,6 +28,9 @@ static GLubyte *gRendererString= (GLubyte *) "Android HW-GLES 1.0";
 static GLubyte *gVersionString= (GLubyte *) "OpenGL ES-CM 1.0";
 static GLubyte *gExtensionsString= (GLubyte *) ""; // no extensions at this point;
 
+// Usefull to return VOID
+#define VOID
+
 #define SET_ERROR_IF(condition,err) if((condition)) {                            \
         ALOGE("%s:%s:%d GL error 0x%x\n", __FILE__, __FUNCTION__, __LINE__, err); \
         ctx->setError(err);                                    \
@@ -905,9 +908,7 @@ void GLEncoder::s_glTexImage2D(void* self, GLenum target, GLint level, GLint int
 {
     GLEncoder* ctx = (GLEncoder*)self;
 
-   ALOGD("GLEncoder::s_glTexImage2D: %X\n", target);
-
-    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, VOID);
 
     if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
@@ -925,9 +926,7 @@ void GLEncoder::s_glTexSubImage2D(void *self , GLenum target, GLint level, GLint
 {
     GLEncoder* ctx = (GLEncoder*)self;
 
-   ALOGD("GLEncoder::s_glTexSubImage2D: %X\n", target);
-
-    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, VOID);
 
     if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
@@ -945,9 +944,7 @@ void GLEncoder::s_glCompressedTexImage2D(void *self , GLenum target, GLint level
 {
     GLEncoder* ctx = (GLEncoder*)self;
 
-   ALOGD("GLEncoder::s_glCompressedTexImage2D: %X\n", target);
-
-    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, VOID);
 
     if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
@@ -965,9 +962,7 @@ void GLEncoder::s_glCompressedTexSubImage2D(void *self , GLenum target, GLint le
 {
     GLEncoder* ctx = (GLEncoder*)self;
 
-   ALOGD("GLEncoder::s_glCompressedTexSubImage2D: %X\n", target);
-
-    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, VOID);
 
     if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
@@ -985,9 +980,7 @@ void GLEncoder::s_glCopyTexImage2D(void *self , GLenum target, GLint level, GLen
 {
     GLEncoder* ctx = (GLEncoder*)self;
 
-   ALOGD("GLEncoder::s_glCopyTexImage2D: %X\n", target);
-
-    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, VOID);
 
     if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
@@ -1003,9 +996,7 @@ void GLEncoder::s_glCopyTexSubImage2D(void *self , GLenum target, GLint level, G
 {
     GLEncoder* ctx = (GLEncoder*)self;
 
-   ALOGD("GLEncoder::s_glCopyTexSubImage2D: %X\n", target);
-
-    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, VOID);
 
     if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
@@ -1020,9 +1011,7 @@ void GLEncoder::s_glGenerateMipmapOES(void *self , GLenum target)
 {
     GLEncoder* ctx = (GLEncoder*)self;
 
-   ALOGD("GLEncoder::s_glGenerateMipmapOES: %X\n", target);
-
-    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, VOID);
 
     if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
