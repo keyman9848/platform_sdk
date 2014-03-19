@@ -1202,7 +1202,11 @@ void GL2Encoder::s_glTexImage2D(void* self, GLenum target, GLint level, GLint in
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
-    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+    ALOGD("GL2Encoder::s_glTexImage2D: %X\n", target);
+
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+
+    if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
         ctx->m_glTexImage2D_enc(ctx, GL_TEXTURE_2D, level, internalFormat, width,
                   height, border, format, type, data);
@@ -1218,7 +1222,11 @@ void GL2Encoder::s_glTexSubImage2D(void *self , GLenum target, GLint level, GLin
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
-    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+    ALOGD("GL2Encoder::s_glTexSubImage2D: %X\n", target);
+
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+
+    if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
         ctx->m_glTexSubImage2D_enc(ctx, GL_TEXTURE_2D, level, xoffset, yoffset, width,
                                    height, format, type, pixels);
@@ -1234,7 +1242,11 @@ void GL2Encoder::s_glCompressedTexImage2D(void *self , GLenum target, GLint leve
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
-    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+    ALOGD("GL2Encoder::s_glCompressedTexImage2D: %X\n", target);
+
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+
+    if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
         ctx->m_glCompressedTexImage2D_enc(ctx, GL_TEXTURE_2D, level, internalFormat, width,
                                           height, border, imageSize, data);
@@ -1250,7 +1262,11 @@ void GL2Encoder::s_glCompressedTexSubImage2D(void *self , GLenum target, GLint l
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
-    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+    ALOGD("GL2Encoder::s_glCompressedTexSubImage2D: %X\n", target);
+
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+
+    if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
         ctx->m_glCompressedTexSubImage2D_enc(ctx, GL_TEXTURE_2D, level, xoffset, yoffset,
                                              width, height, format, imageSize, data);
@@ -1266,7 +1282,11 @@ void GL2Encoder::s_glCopyTexImage2D(void *self , GLenum target, GLint level, GLe
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
-    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+    ALOGD("GL2Encoder::s_glCopyTexImage2D: %X\n", target);
+
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+
+    if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
         ctx->m_glCopyTexImage2D_enc(ctx , GL_TEXTURE_2D, level, internalformat, x, y, width, height, border);
         ctx->restore2DTextureTarget();
@@ -1280,7 +1300,11 @@ void GL2Encoder::s_glCopyTexSubImage2D(void *self , GLenum target, GLint level, 
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
-    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+    ALOGD("GL2Encoder::s_glCopyTexSubImage2D: %X\n", target);
+
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+
+    if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
         ctx->m_glCopyTexSubImage2D_enc(ctx , GL_TEXTURE_2D, level, xoffset, yoffset, x, y, width, height);
         ctx->restore2DTextureTarget();
@@ -1293,7 +1317,11 @@ void GL2Encoder::s_glGenerateMipmap(void *self , GLenum target)
 {
     GL2Encoder* ctx = (GL2Encoder*)self;
 
-    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+    ALOGD("GL2Encoder::s_glGenerateMipmap: %X\n", target);
+
+    RET_AND_SET_ERROR_IF(target == GL_TEXTURE_EXTERNAL_OES, GL_INVALID_ENUM, );
+
+    if (target == GL_TEXTURE_2D) {
         ctx->override2DTextureTarget(target);
         ctx->m_glGenerateMipmap_enc(ctx , GL_TEXTURE_2D);
         ctx->restore2DTextureTarget();
