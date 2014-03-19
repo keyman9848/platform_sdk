@@ -97,6 +97,13 @@ private:
     glTexParameterx_client_proc_t m_glTexParameterx_enc;
     glTexParameteriv_client_proc_t m_glTexParameteriv_enc;
     glTexParameterxv_client_proc_t m_glTexParameterxv_enc;
+    glTexImage2D_client_proc_t m_glTexImage2D_enc;
+    glTexSubImage2D_client_proc_t m_glTexSubImage2D_enc;
+    glCompressedTexImage2D_client_proc_t m_glCompressedTexImage2D_enc;
+    glCompressedTexSubImage2D_client_proc_t m_glCompressedTexSubImage2D_enc;
+    glCopyTexImage2D_client_proc_t m_glCopyTexImage2D_enc;
+    glCopyTexSubImage2D_client_proc_t m_glCopyTexSubImage2D_enc;
+    glGenerateMipmapOES_client_proc_t m_glGenerateMipmapOES_enc;
 
     // statics
     static GLenum s_glGetError(void * self);
@@ -145,5 +152,18 @@ private:
     static void s_glTexParameterx(void* self, GLenum target, GLenum pname, GLfixed param);
     static void s_glTexParameteriv(void* self, GLenum target, GLenum pname, const GLint* params);
     static void s_glTexParameterxv(void* self, GLenum target, GLenum pname, const GLfixed* params);
+    static void s_glTexImage2D(void* self, GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                               GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid * data);
+    static void s_glTexSubImage2D(void *self , GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                                  GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels);
+    static void s_glCompressedTexImage2D(void *self , GLenum target, GLint level, GLenum internalformat, GLsizei width,
+                                         GLsizei height, GLint border, GLsizei imageSize, const GLvoid* data);
+    static void s_glCompressedTexSubImage2D(void *self , GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                                            GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid* data);
+    static void s_glCopyTexImage2D(void *self , GLenum target, GLint level, GLenum internalformat, GLint x, GLint y,
+                                   GLsizei width, GLsizei height, GLint border);
+    static void s_glCopyTexSubImage2D(void *self , GLenum target, GLint level, GLint xoffset,
+                                      GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+    static void s_glGenerateMipmapOES(void *self , GLenum target);
 };
 #endif

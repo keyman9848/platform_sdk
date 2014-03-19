@@ -900,6 +900,111 @@ void GLEncoder::s_glTexParameterxv(void* self,
     }
 }
 
+void GLEncoder::s_glTexImage2D(void* self, GLenum target, GLint level, GLint internalFormat, GLsizei width,
+          GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid * data)
+{
+    GLEncoder* ctx = (GLEncoder*)self;
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+        ctx->m_glTexImage2D_enc(ctx, GL_TEXTURE_2D, level, internalFormat, width,
+                  height, border, format, type, data);
+        ctx->restore2DTextureTarget();
+    } else {
+        ctx->m_glTexImage2D_enc(ctx, target, level, internalFormat, width,
+                  height, border, format, type, data);
+    }
+}
+
+void GLEncoder::s_glTexSubImage2D(void *self , GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                      GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid* pixels)
+{
+    GLEncoder* ctx = (GLEncoder*)self;
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+        ctx->m_glTexSubImage2D_enc(ctx, GL_TEXTURE_2D, level, xoffset, yoffset, width,
+                                   height, format, type, pixels);
+        ctx->restore2DTextureTarget();
+    } else {
+        ctx->m_glTexSubImage2D_enc(ctx, target, level, xoffset, yoffset, width,
+                                   height, format, type, pixels);
+    }
+}
+
+void GLEncoder::s_glCompressedTexImage2D(void *self , GLenum target, GLint level, GLenum internalFormat, GLsizei width,
+                                          GLsizei height, GLint border, GLsizei imageSize, const GLvoid* data)
+{
+    GLEncoder* ctx = (GLEncoder*)self;
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+        ctx->m_glCompressedTexImage2D_enc(ctx, GL_TEXTURE_2D, level, internalFormat, width,
+                                          height, border, imageSize, data);
+        ctx->restore2DTextureTarget();
+    } else {
+        ctx->m_glCompressedTexImage2D_enc(ctx, target, level, internalFormat, width,
+                  height, border, imageSize, data);
+    }
+}
+
+void GLEncoder::s_glCompressedTexSubImage2D(void *self , GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                             GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid* data)
+{
+    GLEncoder* ctx = (GLEncoder*)self;
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+        ctx->m_glCompressedTexSubImage2D_enc(ctx, GL_TEXTURE_2D, level, xoffset, yoffset,
+                                             width, height, format, imageSize, data);
+        ctx->restore2DTextureTarget();
+    } else {
+        ctx->m_glCompressedTexSubImage2D_enc(ctx, target, level, xoffset, yoffset,
+                                             width, height, format, imageSize, data);
+    }
+}
+
+void GLEncoder::s_glCopyTexImage2D(void *self , GLenum target, GLint level, GLenum internalformat, GLint x, GLint y,
+                                    GLsizei width, GLsizei height, GLint border)
+{
+    GLEncoder* ctx = (GLEncoder*)self;
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+        ctx->m_glCopyTexImage2D_enc(ctx , GL_TEXTURE_2D, level, internalformat, x, y, width, height, border);
+        ctx->restore2DTextureTarget();
+    } else {
+        ctx->m_glCopyTexImage2D_enc(ctx, target, level, internalformat, x, y, width, height, border);
+    }
+}
+
+void GLEncoder::s_glCopyTexSubImage2D(void *self , GLenum target, GLint level, GLint xoffset,
+                                      GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    GLEncoder* ctx = (GLEncoder*)self;
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+        ctx->m_glCopyTexSubImage2D_enc(ctx , GL_TEXTURE_2D, level, xoffset, yoffset, x, y, width, height);
+        ctx->restore2DTextureTarget();
+    } else {
+        ctx->m_glCopyTexSubImage2D_enc(ctx, target, level, xoffset, yoffset, x, y, width, height);
+    }
+}
+
+void GLEncoder::s_glGenerateMipmapOES(void *self , GLenum target)
+{
+    GLEncoder* ctx = (GLEncoder*)self;
+
+    if (target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) {
+        ctx->override2DTextureTarget(target);
+        ctx->m_glGenerateMipmapOES_enc(ctx , GL_TEXTURE_2D);
+        ctx->restore2DTextureTarget();
+    } else {
+        ctx->m_glGenerateMipmapOES_enc(ctx , target);
+    }
+}
+
 void GLEncoder::override2DTextureTarget(GLenum target)
 {
     if ((target == GL_TEXTURE_2D || target == GL_TEXTURE_EXTERNAL_OES) &&
@@ -969,6 +1074,13 @@ GLEncoder::GLEncoder(IOStream *stream) : gl_encoder_context_t(stream)
     m_glTexParameterx_enc = set_glTexParameterx(s_glTexParameterx);
     m_glTexParameteriv_enc = set_glTexParameteriv(s_glTexParameteriv);
     m_glTexParameterxv_enc = set_glTexParameterxv(s_glTexParameterxv);
+    m_glTexImage2D_enc = set_glTexImage2D(s_glTexImage2D);
+    m_glTexSubImage2D_enc = set_glTexSubImage2D(s_glTexSubImage2D);
+    m_glCompressedTexImage2D_enc = set_glCompressedTexImage2D(s_glCompressedTexImage2D);
+    m_glCompressedTexSubImage2D_enc = set_glCompressedTexSubImage2D(s_glCompressedTexSubImage2D);
+    m_glCopyTexImage2D_enc = set_glCopyTexImage2D(s_glCopyTexImage2D);
+    m_glCopyTexSubImage2D_enc = set_glCopyTexSubImage2D(s_glCopyTexSubImage2D);
+    m_glGenerateMipmapOES_enc = set_glGenerateMipmapOES(s_glGenerateMipmapOES);
 }
 
 GLEncoder::~GLEncoder()
