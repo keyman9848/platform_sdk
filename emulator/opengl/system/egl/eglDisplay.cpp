@@ -213,26 +213,6 @@ EGLBoolean destroyContext(EGLDisplay dpy, EGLContext ctx);
 void eglDisplay::terminate()
 {
     pthread_mutex_lock(&m_lock);
-   /*
-    if (m_initialized) {
-        m_initialized = false;
-        delete [] m_configs;
-        m_configs = NULL;
-
-        if (m_versionString) {
-            free(m_versionString);
-            m_versionString = NULL;
-        }
-        if (m_vendorString) {
-            free(m_vendorString);
-            m_vendorString = NULL;
-        }
-        if (m_extensionString) {
-            free(m_extensionString);
-            m_extensionString = NULL;
-        }
-    }
-    */
 
     // release surfaces
     for(List<egl_surface_t*>::iterator it=m_surfaces.begin(); it!=m_surfaces.end(); ++it) {

@@ -267,6 +267,9 @@ egl_window_surface_t::~egl_window_surface_t() {
     }
     nativeWindow->common.decRef(&nativeWindow->common);
 
+    // RCEncoder do not flush call without return value
+    // Force flush to be sure that rcDestroyWindowSurface
+    // will be send event if it is the last call of this connection thread
     rcEnc->m_stream->flush();
 }
 
@@ -893,6 +896,11 @@ EGLBoolean eglDestroyContext(EGLDisplay dpy, EGLContext ctx)
     return EGL_TRUE;
 }
 
+/**
+ * If the EGL rendering context context is not current to any thread,
+ * eglDestroyContext destroys it immediately. Otherwise, context is
+ * destroyed when it becomes not current to any thread.
+ */
 EGLBoolean destroyContext(EGLDisplay dpy, EGLContext ctx)
 {
     VALIDATE_DISPLAY_INIT(dpy, EGL_FALSE);
@@ -903,8 +911,8 @@ EGLBoolean destroyContext(EGLDisplay dpy, EGLContext ctx)
     if (getEGLThreadInfo()->currentContext == context)
     {
         // do not delete immediatly current context
+        // but mark it for deletion
         context->flags |= EGLContext_t::TO_DELETE;
-        ALOGE("egl: current context mark for deletion\n");
         return EGL_TRUE;
     }
 
@@ -993,6 +1001,8 @@ EGLBoolean eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EGLSurface read, EGLC
     EGLContext_t * prevCtx = tInfo->currentContext;
     tInfo->currentContext = context;
 
+    // If there is a previous context and if this context is marked
+    // for deletetion, we delete it.
     if(prevCtx && (prevCtx->flags & EGLContext_t::TO_DELETE)) {
         eglDestroyContext(&s_display, prevCtx);
     }
