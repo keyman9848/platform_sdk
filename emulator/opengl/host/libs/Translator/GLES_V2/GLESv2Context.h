@@ -21,7 +21,7 @@
 #include <GLcommon/GLEScontext.h>
 #include <GLcommon/objectNameManager.h>
 #include <utils/threads.h>
-
+#include <list>
 
 
 class GLESv2Context : public GLEScontext{
@@ -40,6 +40,10 @@ public:
     void validateAtt0PreDraw(unsigned int count);
     void validateAtt0PostDraw(void);
     const float* getAtt0(void) {return m_attribute0value;}
+    void addProgram(GLuint program) {m_programs.push_back(program);}
+    void removeProgram(GLuint program) {m_programs.remove(program);}
+    void addShader(GLuint shader) {m_shaders.push_back(shader);}
+    void removeShader(GLuint shader) {m_shaders.remove(shader);}
 
 protected:
     bool needConvert(GLESConversionArrays& fArrs,GLint first,GLsizei count,GLenum type,const GLvoid* indices,bool direct,GLESpointer* p,GLenum array_id);
@@ -51,6 +55,9 @@ private:
     GLfloat* m_att0Array;
     unsigned int m_att0ArrayLength;
     bool m_att0NeedsDisable;
+
+    std::list<GLuint> m_programs;
+    std::list<GLuint> m_shaders;
 };
 
 #endif
