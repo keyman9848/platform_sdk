@@ -15,7 +15,7 @@
 */
 
 #include "GLESv2Context.h"
-
+#include <stdio.h>
 
 
 void GLESv2Context::init() {
@@ -36,11 +36,32 @@ void GLESv2Context::init() {
     m_initialized = true;
 }
 
-GLESv2Context::GLESv2Context():GLEScontext(), m_att0Array(NULL), m_att0ArrayLength(0), m_att0NeedsDisable(false){};
+GLESv2Context::GLESv2Context():
+    GLEScontext(),
+    m_att0Array(NULL),
+    m_att0ArrayLength(0),
+    m_att0NeedsDisable(false)
+{
+
+};
 
 GLESv2Context::~GLESv2Context()
 {
     delete[] m_att0Array;
+
+    for (std::list<GLuint>::iterator it = m_shaders.begin(); it != m_shaders.end(); it++) {
+        const GLuint globalShaderName = shareGroup()->getGlobalName(SHADER, *it);
+        fprintf(stderr, "delete shader %d %d\n", *it, globalShaderName);
+        shareGroup()->deleteName(SHADER,*it);
+        dispatcher().glDeleteShader(globalShaderName);
+    }
+
+    for (std::list<GLuint>::iterator it = m_programs.begin(); it != m_programs.end(); it++) {
+        const GLuint globalProgramName = shareGroup()->getGlobalName(SHADER, *it);
+        fprintf(stderr, "delete program %d %d\n", *it, globalProgramName);
+        shareGroup()->deleteName(SHADER, *it);
+        dispatcher().glDeleteProgram(globalProgramName);
+    }
 }
 
 void GLESv2Context::setAttribute0value(float x, float y, float z, float w)

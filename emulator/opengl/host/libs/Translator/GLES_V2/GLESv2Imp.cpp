@@ -412,13 +412,14 @@ GL_APICALL void  GL_APIENTRY glCopyTexSubImage2D(GLenum target, GLint level, GLi
 }
 
 GL_APICALL GLuint GL_APIENTRY glCreateProgram(void){
-    GET_CTX_RET(0);
+    GET_CTX_V2_RET(0);
     const GLuint globalProgramName = ctx->dispatcher().glCreateProgram();
     if(ctx->shareGroup().Ptr() && globalProgramName) {
             ProgramData* programInfo = new ProgramData();
             const GLuint localProgramName = ctx->shareGroup()->genName(SHADER, 0, true);
             ctx->shareGroup()->replaceGlobalName(SHADER,localProgramName,globalProgramName);
             ctx->shareGroup()->setObjectData(SHADER,localProgramName,ObjectDataPtr(programInfo));
+            ctx->addProgram(localProgramName);
             return localProgramName;
     }
     if(globalProgramName){
@@ -436,6 +437,7 @@ GL_APICALL GLuint GL_APIENTRY glCreateShader(GLenum type){
             ShaderParser* sp = new ShaderParser(type);
             ctx->shareGroup()->replaceGlobalName(SHADER,localShaderName,globalShaderName);
             ctx->shareGroup()->setObjectData(SHADER,localShaderName,ObjectDataPtr(sp));
+            ctx->addShader(localShaderName);
             return localShaderName;
     }
     if(globalShaderName){
@@ -508,24 +510,25 @@ GL_APICALL void  GL_APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures)
 }
 
 GL_APICALL void  GL_APIENTRY glDeleteProgram(GLuint program){
-    GET_CTX();
+    GET_CTX_V2();
     if(program && ctx->shareGroup().Ptr()) {
         const GLuint globalProgramName = ctx->shareGroup()->getGlobalName(SHADER,program);
         SET_ERROR_IF(!globalProgramName, GL_INVALID_VALUE);
         ctx->shareGroup()->deleteName(SHADER,program);
         ctx->dispatcher().glDeleteProgram(globalProgramName);
+        ctx->removeProgram(program);
     }
 }
 
 GL_APICALL void  GL_APIENTRY glDeleteShader(GLuint shader){
-    GET_CTX();
+    GET_CTX_V2();
     if(shader && ctx->shareGroup().Ptr()) {
         const GLuint globalShaderName = ctx->shareGroup()->getGlobalName(SHADER,shader);
         SET_ERROR_IF(!globalShaderName, GL_INVALID_VALUE);
         ctx->shareGroup()->deleteName(SHADER,shader);
         ctx->dispatcher().glDeleteShader(globalShaderName);
-    }
-        
+        ctx->removeShader(shader);
+    }       
 }
 
 GL_APICALL void  GL_APIENTRY glDepthFunc(GLenum func){
