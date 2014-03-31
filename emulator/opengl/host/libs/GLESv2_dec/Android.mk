@@ -3,8 +3,13 @@ LOCAL_PATH := $(call my-dir)
 host_common_debug_CFLAGS :=
 
 #For gl debbuging
-#host_common_debug_CFLAGS += -DCHECK_GL_ERROR
-#host_common_debug_CFLAGS += -DDEBUG_PRINTOUT
+ifdef GL_DEBUG
+host_common_debug_CFLAGS += -ggdb3 -O0 -DCHECK_GL_ERROR
+endif
+
+ifdef GL_DUMP
+host_common_debug_CFLAGS += -DDEBUG_PRINTOUT
+endif
 
 
 ### host library ##########################################

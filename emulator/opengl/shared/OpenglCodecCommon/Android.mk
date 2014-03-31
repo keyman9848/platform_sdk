@@ -3,6 +3,13 @@
 #
 LOCAL_PATH := $(call my-dir)
 
+host_common_debug_CFLAGS :=
+
+#For gl debbuging
+ifdef GL_DEBUG
+host_common_debug_CFLAGS += -ggdb3 -O0 -DCHECK_GL_ERROR
+endif
+
 commonSources := \
         GLClientState.cpp \
         GLSharedGroup.cpp \
@@ -26,6 +33,7 @@ $(call emugl-begin-static-library,libOpenglCodecCommon)
 LOCAL_SRC_FILES := $(commonSources)
 
 LOCAL_CFLAGS += -DLOG_TAG=\"eglCodecCommon\"
+$(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS))
 
 $(call emugl-export,SHARED_LIBRARIES,libcutils libutils)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
@@ -49,7 +57,7 @@ LOCAL_SRC_FILES := $(host_commonSources)
 
 $(call emugl-export,STATIC_LIBRARIES,lib64cutils)
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH))
-$(call emugl-export,CFLAGS,-m64)
+$(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS) -m64)
 
 ifeq ($(HOST_OS),windows)
 LOCAL_CC = /usr/bin/amd64-mingw32msvc-gcc 

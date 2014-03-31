@@ -1,5 +1,12 @@
 LOCAL_PATH := $(call my-dir)
 
+host_common_debug_CFLAGS :=
+
+#For gl debbuging
+ifdef GL_DEBUG
+host_common_debug_CFLAGS += -ggdb3 -O0
+endif
+
 host_OS_SRCS :=
 host_common_LDLIBS :=
 
@@ -43,6 +50,7 @@ $(call emugl-import,libGLcommon)
 
 LOCAL_LDLIBS += $(host_common_LDLIBS)
 LOCAL_SRC_FILES := $(host_common_SRC_FILES)
+$(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS))
 
 $(call emugl-end-module)
 
@@ -52,6 +60,7 @@ $(call emugl-import,lib64GLcommon)
 
 LOCAL_LDLIBS += $(host_common_LDLIBS) -m64
 LOCAL_SRC_FILES := $(host_common_SRC_FILES)
+$(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS))
 
 ifeq ($(HOST_OS),windows)
 LOCAL_CC = /usr/bin/amd64-mingw32msvc-gcc 

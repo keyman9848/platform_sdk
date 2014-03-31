@@ -1,5 +1,12 @@
 LOCAL_PATH := $(call my-dir)
 
+host_common_debug_CFLAGS :=
+
+#For gl debbuging
+ifdef GL_DEBUG
+host_common_debug_CFLAGS += -ggdb3 -O0 -DCHECK_GL_ERROR
+endif
+
 host_common_SRC_FILES :=     \
      GLDispatch.cpp          \
      GLutils.cpp             \
@@ -42,6 +49,7 @@ $(call emugl-export,LDLIBS,$(host_common_LDLIBS))
 $(call emugl-export,LDFLAGS,$(host_common_LDFLAGS))
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH)/../include $(EMUGL_PATH)/shared)
 $(call emugl-export,STATIC_LIBRARIES, libcutils libutils liblog)
+$(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS))
 
 $(call emugl-end-module)
 
@@ -57,6 +65,7 @@ $(call emugl-export,LDLIBS,$(host_common_LDLIBS))
 $(call emugl-export,LDFLAGS,$(host_common_LDFLAGS))
 $(call emugl-export,C_INCLUDES,$(LOCAL_PATH)/../include $(EMUGL_PATH)/shared)
 $(call emugl-export,STATIC_LIBRARIES, lib64cutils lib64utils lib64log)
+$(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS))
 
 ifeq ($(HOST_OS),windows)
 LOCAL_CC = /usr/bin/amd64-mingw32msvc-gcc 
