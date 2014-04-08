@@ -49,6 +49,20 @@ GLESv2Context::~GLESv2Context()
 {
     delete[] m_att0Array;
 
+    for (std::list<GLuint>::iterator it = m_framebuffers.begin(); it != m_framebuffers.end(); it++) {
+        const GLuint globalBufferName = shareGroup()->getGlobalName(FRAMEBUFFER, *it);
+        //fprintf(stderr, "GLESv2Context delete framebuffer %d %d\n", *it, globalBufferName);
+        shareGroup()->deleteName(FRAMEBUFFER, *it);
+        dispatcher().glDeleteFramebuffersEXT(1, &globalBufferName);
+    }
+
+    for (std::list<GLuint>::iterator it = m_buffers.begin(); it != m_buffers.end(); it++) {
+        const GLuint globalBufferName = shareGroup()->getGlobalName(VERTEXBUFFER, *it);
+        //fprintf(stderr, "GLESv2Context delete buffer %d %d\n", *it, globalBufferName);
+        shareGroup()->deleteName(VERTEXBUFFER, *it);
+        dispatcher().glDeleteBuffers(1, &globalBufferName);
+    }
+
     dispatcher().glBindTexture(GL_TEXTURE_2D, 0);
 
     for (std::list<GLuint>::iterator it = m_textures.begin(); it != m_textures.end(); it++) {
@@ -74,19 +88,6 @@ GLESv2Context::~GLESv2Context()
         dispatcher().glDeleteProgram(globalProgramName);
     }
 
-    for (std::list<GLuint>::iterator it = m_buffers.begin(); it != m_buffers.end(); it++) {
-        const GLuint globalBufferName = shareGroup()->getGlobalName(VERTEXBUFFER, *it);
-        //fprintf(stderr, "GLESv2Context delete buffer %d %d\n", *it, globalBufferName);
-        shareGroup()->deleteName(VERTEXBUFFER, *it);
-        dispatcher().glDeleteBuffers(1, &globalBufferName);
-    }
-
-    for (std::list<GLuint>::iterator it = m_framebuffers.begin(); it != m_framebuffers.end(); it++) {
-        const GLuint globalBufferName = shareGroup()->getGlobalName(FRAMEBUFFER, *it);
-        //fprintf(stderr, "GLESv2Context delete framebuffer %d %d\n", *it, globalBufferName);
-        shareGroup()->deleteName(FRAMEBUFFER, *it);
-        dispatcher().glDeleteFramebuffersEXT(1, &globalBufferName);
-    }
 }
 
 void GLESv2Context::setAttribute0value(float x, float y, float z, float w)
