@@ -39,7 +39,7 @@ host_common_SRC_FILES := \
 host_common_CFLAGS :=
 
 #For gl debbuging
-#host_common_CFLAGS += -DCHECK_GL_ERROR
+host_common_CFLAGS += -DCHECK_GL_ERROR
 
 
 ### host libOpenglRender #################################################
@@ -80,7 +80,7 @@ LOCAL_C_INCLUDES += $(EMUGL_PATH)/host/libs/Translator/include
 
 LOCAL_STATIC_LIBRARIES += lib64utils lib64log
 
-$(call emugl-export,CFLAGS,$(host_commont_CFLAGS) -m64)
+$(call emugl-export,CFLAGS,$(host_common_CFLAGS) -m64)
 
 ifeq ($(HOST_OS),windows)
 LOCAL_CC = /usr/bin/amd64-mingw32msvc-gcc 

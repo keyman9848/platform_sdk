@@ -63,6 +63,15 @@ GLEScmContext::~GLEScmContext(){
         m_texCoords = NULL;
     }
     m_map[GL_TEXTURE_COORD_ARRAY] = NULL;
+
+    dispatcher().glBindTexture(GL_TEXTURE_2D, 0);
+
+    for (std::list<GLuint>::iterator it = m_textures.begin(); it != m_textures.end(); it++) {
+        const GLuint globalTextureName = shareGroup()->getGlobalName(TEXTURE, *it);
+        //fprintf(stderr, "GLEScmContext delete texture %d %d\n", *it, globalTextureName);
+        shareGroup()->deleteName(TEXTURE, *it);
+        dispatcher().glDeleteTextures(1, &globalTextureName);
+    }
 }
 
 

@@ -165,7 +165,7 @@ restart_renderserver_main:
                 }
             }
 
-            fprintf(stderr, "Clients %d\n", threads.size());
+            //fprintf(stderr, "Clients %d\n", threads.size());
 
             if (!tcpcli_main->waitForDatas(PING_TIMEOUT)) {
                 int ctime = time(NULL);

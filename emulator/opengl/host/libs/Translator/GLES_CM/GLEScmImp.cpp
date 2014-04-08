@@ -504,7 +504,7 @@ GL_API void GL_APIENTRY  glDeleteBuffers( GLsizei n, const GLuint *buffers) {
 }
 
 GL_API void GL_APIENTRY  glDeleteTextures( GLsizei n, const GLuint *textures) {
-    GET_CTX()
+    GET_CTX_CM()
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i < n; i++){
@@ -518,7 +518,8 @@ GL_API void GL_APIENTRY  glDeleteTextures( GLsizei n, const GLuint *textures) {
                     ctx->dispatcher().glDeleteTextures(1,&globalTextureName);
                 }
                 ctx->shareGroup()->deleteName(TEXTURE,textures[i]);
-                
+                ctx->removeTexture(textures[i]);
+
                 if(ctx->getBindedTexture(GL_TEXTURE_2D) == textures[i])
                     ctx->setBindedTexture(GL_TEXTURE_2D,0);
                 if (ctx->getBindedTexture(GL_TEXTURE_CUBE_MAP) == textures[i])
@@ -702,10 +703,11 @@ GL_API void GL_APIENTRY  glGenBuffers( GLsizei n, GLuint *buffers) {
 }
 
 GL_API void GL_APIENTRY  glGenTextures( GLsizei n, GLuint *textures) {
-    GET_CTX();
+    GET_CTX_CM();
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i<n ;i++) {
             textures[i] = ctx->shareGroup()->genName(TEXTURE, 0, true);
+            ctx->addTexture(textures[i]);
         }
     }
 }

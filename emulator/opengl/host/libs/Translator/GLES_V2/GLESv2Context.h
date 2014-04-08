@@ -44,6 +44,14 @@ public:
     void removeProgram(GLuint program) {m_programs.remove(program);}
     void addShader(GLuint shader) {m_shaders.push_back(shader);}
     void removeShader(GLuint shader) {m_shaders.remove(shader);}
+    void addTexture(GLuint texture) {m_textures.push_back(texture);}
+    void removeTexture(GLuint texture) {m_textures.remove(texture);}
+    void addBuffer(GLuint buffer) {m_buffers.push_back(buffer);}
+    void removeBuffer(GLuint buffer) {m_buffers.remove(buffer);}
+    void addFramebuffer(GLuint framebuffers) {m_framebuffers.push_back(framebuffers);}
+    void removeFramebuffer(GLuint framebuffers) {m_framebuffers.remove(framebuffers);}
+    void addRenderbuffer(GLuint renderbuffers) {m_renderbuffers.push_back(renderbuffers);}
+    void removeRenderbuffer(GLuint renderbuffers) {m_renderbuffers.remove(renderbuffers);}
 
 protected:
     bool needConvert(GLESConversionArrays& fArrs,GLint first,GLsizei count,GLenum type,const GLvoid* indices,bool direct,GLESpointer* p,GLenum array_id);
@@ -58,6 +66,10 @@ private:
 
     std::list<GLuint> m_programs;
     std::list<GLuint> m_shaders;
+    std::list<GLuint> m_textures;
+    std::list<GLuint> m_buffers;
+    std::list<GLuint> m_framebuffers;
+    std::list<GLuint> m_renderbuffers;
 };
 
 #endif

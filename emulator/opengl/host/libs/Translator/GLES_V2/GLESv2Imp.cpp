@@ -452,41 +452,47 @@ GL_APICALL void  GL_APIENTRY glCullFace(GLenum mode){
 }
 
 GL_APICALL void  GL_APIENTRY glDeleteBuffers(GLsizei n, const GLuint* buffers){
-    GET_CTX();
+    GET_CTX_V2();
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i < n; i++){
            ctx->shareGroup()->deleteName(VERTEXBUFFER,buffers[i]);
+           //fprintf(stderr, "glDeleteBuffers %d\n", buffers[i]);
+           ctx->removeBuffer(buffers[i]);
         }
     }
 }
 
 GL_APICALL void  GL_APIENTRY glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers){
-    GET_CTX();
+    GET_CTX_V2();
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i < n; i++){
            const GLuint globalFrameBufferName = ctx->shareGroup()->getGlobalName(FRAMEBUFFER,framebuffers[i]);
            ctx->shareGroup()->deleteName(FRAMEBUFFER,framebuffers[i]);
            ctx->dispatcher().glDeleteFramebuffersEXT(1,&globalFrameBufferName);
+           //fprintf(stderr, "glDeleteFramebuffers %d\n", framebuffers[i]);
+           ctx->removeFramebuffer(framebuffers[i]);
         }
     }
 }
 
 GL_APICALL void  GL_APIENTRY glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers){
-    GET_CTX();
+    GET_CTX_V2();
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i < n; i++){
            const GLuint globalRenderBufferName = ctx->shareGroup()->getGlobalName(RENDERBUFFER,renderbuffers[i]);
            ctx->shareGroup()->deleteName(RENDERBUFFER,renderbuffers[i]);
            ctx->dispatcher().glDeleteRenderbuffersEXT(1,&globalRenderBufferName);
+           //fprintf(stderr, "glDeleteRenderbuffers %d\n", renderbuffers[i]);
+           ctx->removeRenderbuffer(renderbuffers[i]);
         }
     }
 }
 
 GL_APICALL void  GL_APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures){
-    GET_CTX();
+    GET_CTX_V2();
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i < n; i++){
@@ -499,7 +505,8 @@ GL_APICALL void  GL_APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures)
                     ctx->dispatcher().glDeleteTextures(1,&globalTextureName);
                 }
                 ctx->shareGroup()->deleteName(TEXTURE,textures[i]);
-
+                ctx->removeTexture(textures[i]);
+ 
                 if (ctx->getBindedTexture(GL_TEXTURE_2D) == textures[i])
                     ctx->setBindedTexture(GL_TEXTURE_2D,0);
                 if (ctx->getBindedTexture(GL_TEXTURE_CUBE_MAP) == textures[i])
@@ -750,13 +757,15 @@ GL_APICALL void  GL_APIENTRY glFrontFace(GLenum mode){
 }
 
 GL_APICALL void  GL_APIENTRY glGenBuffers(GLsizei n, GLuint* buffers){
-    GET_CTX();
+    GET_CTX_V2();
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i<n ;i++) {
             buffers[i] = ctx->shareGroup()->genName(VERTEXBUFFER, 0, true);
             //generating vbo object related to this buffer name
             ctx->shareGroup()->setObjectData(VERTEXBUFFER,buffers[i],ObjectDataPtr(new GLESbuffer()));
+            //fprintf(stderr, "glGenBuffers %d\n", buffers[i]);
+            ctx->addBuffer(buffers[i]);
         }
     }
 }
@@ -768,19 +777,21 @@ GL_APICALL void  GL_APIENTRY glGenerateMipmap(GLenum target){
 }
 
 GL_APICALL void  GL_APIENTRY glGenFramebuffers(GLsizei n, GLuint* framebuffers){
-    GET_CTX();
+    GET_CTX_V2();
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i<n ;i++) {
             framebuffers[i] = ctx->shareGroup()->genName(FRAMEBUFFER, 0 ,true);
             ctx->shareGroup()->setObjectData(FRAMEBUFFER, framebuffers[i],
                                              ObjectDataPtr(new FramebufferData(framebuffers[i])));
+            //fprintf(stderr, "glGenFramebuffers %d\n", framebuffers[i]);
+            ctx->addFramebuffer(framebuffers[i]);
         }
     }
 }
 
 GL_APICALL void  GL_APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers){
-    GET_CTX();
+    GET_CTX_V2();
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i<n ;i++) {
@@ -788,16 +799,19 @@ GL_APICALL void  GL_APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers
             ctx->shareGroup()->setObjectData(RENDERBUFFER,
                                          renderbuffers[i],
                                          ObjectDataPtr(new RenderbufferData()));
+            //fprintf(stderr, "glGenRenderbuffers %d\n", renderbuffers[i]);
+            ctx->addRenderbuffer(renderbuffers[i]);
         }
     }
 }
 
 GL_APICALL void  GL_APIENTRY glGenTextures(GLsizei n, GLuint* textures){
-    GET_CTX();
+    GET_CTX_V2();
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i<n ;i++) {
             textures[i] = ctx->shareGroup()->genName(TEXTURE, 0, true);
+            ctx->addTexture(textures[i]);
         }
     }
 }
