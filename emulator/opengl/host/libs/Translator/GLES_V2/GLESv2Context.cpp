@@ -51,14 +51,18 @@ GLESv2Context::~GLESv2Context()
 
     for (std::list<GLuint>::iterator it = m_framebuffers.begin(); it != m_framebuffers.end(); it++) {
         const GLuint globalBufferName = shareGroup()->getGlobalName(FRAMEBUFFER, *it);
-        //fprintf(stderr, "GLESv2Context delete framebuffer %d %d\n", *it, globalBufferName);
         shareGroup()->deleteName(FRAMEBUFFER, *it);
         dispatcher().glDeleteFramebuffersEXT(1, &globalBufferName);
     }
 
+    for (std::list<GLuint>::iterator it = m_renderbuffers.begin(); it != m_renderbuffers.end(); it++) {
+        const GLuint globalBufferName = shareGroup()->getGlobalName(RENDERBUFFER, *it);
+        shareGroup()->deleteName(RENDERBUFFER, *it);
+        dispatcher().glDeleteRenderbuffersEXT(1, &globalBufferName);
+    }
+
     for (std::list<GLuint>::iterator it = m_buffers.begin(); it != m_buffers.end(); it++) {
         const GLuint globalBufferName = shareGroup()->getGlobalName(VERTEXBUFFER, *it);
-        //fprintf(stderr, "GLESv2Context delete buffer %d %d\n", *it, globalBufferName);
         shareGroup()->deleteName(VERTEXBUFFER, *it);
         dispatcher().glDeleteBuffers(1, &globalBufferName);
     }

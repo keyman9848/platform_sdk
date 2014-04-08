@@ -457,7 +457,7 @@ GL_APICALL void  GL_APIENTRY glDeleteBuffers(GLsizei n, const GLuint* buffers){
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i < n; i++){
            ctx->shareGroup()->deleteName(VERTEXBUFFER,buffers[i]);
-           //fprintf(stderr, "glDeleteBuffers %d\n", buffers[i]);
+           ctx->unbindBuffer(buffers[i]);
            ctx->removeBuffer(buffers[i]);
         }
     }
@@ -471,7 +471,6 @@ GL_APICALL void  GL_APIENTRY glDeleteFramebuffers(GLsizei n, const GLuint* frame
            const GLuint globalFrameBufferName = ctx->shareGroup()->getGlobalName(FRAMEBUFFER,framebuffers[i]);
            ctx->shareGroup()->deleteName(FRAMEBUFFER,framebuffers[i]);
            ctx->dispatcher().glDeleteFramebuffersEXT(1,&globalFrameBufferName);
-           //fprintf(stderr, "glDeleteFramebuffers %d\n", framebuffers[i]);
            ctx->removeFramebuffer(framebuffers[i]);
         }
     }
@@ -485,7 +484,6 @@ GL_APICALL void  GL_APIENTRY glDeleteRenderbuffers(GLsizei n, const GLuint* rend
            const GLuint globalRenderBufferName = ctx->shareGroup()->getGlobalName(RENDERBUFFER,renderbuffers[i]);
            ctx->shareGroup()->deleteName(RENDERBUFFER,renderbuffers[i]);
            ctx->dispatcher().glDeleteRenderbuffersEXT(1,&globalRenderBufferName);
-           //fprintf(stderr, "glDeleteRenderbuffers %d\n", renderbuffers[i]);
            ctx->removeRenderbuffer(renderbuffers[i]);
         }
     }
@@ -764,7 +762,6 @@ GL_APICALL void  GL_APIENTRY glGenBuffers(GLsizei n, GLuint* buffers){
             buffers[i] = ctx->shareGroup()->genName(VERTEXBUFFER, 0, true);
             //generating vbo object related to this buffer name
             ctx->shareGroup()->setObjectData(VERTEXBUFFER,buffers[i],ObjectDataPtr(new GLESbuffer()));
-            //fprintf(stderr, "glGenBuffers %d\n", buffers[i]);
             ctx->addBuffer(buffers[i]);
         }
     }
@@ -784,7 +781,6 @@ GL_APICALL void  GL_APIENTRY glGenFramebuffers(GLsizei n, GLuint* framebuffers){
             framebuffers[i] = ctx->shareGroup()->genName(FRAMEBUFFER, 0 ,true);
             ctx->shareGroup()->setObjectData(FRAMEBUFFER, framebuffers[i],
                                              ObjectDataPtr(new FramebufferData(framebuffers[i])));
-            //fprintf(stderr, "glGenFramebuffers %d\n", framebuffers[i]);
             ctx->addFramebuffer(framebuffers[i]);
         }
     }
@@ -799,7 +795,6 @@ GL_APICALL void  GL_APIENTRY glGenRenderbuffers(GLsizei n, GLuint* renderbuffers
             ctx->shareGroup()->setObjectData(RENDERBUFFER,
                                          renderbuffers[i],
                                          ObjectDataPtr(new RenderbufferData()));
-            //fprintf(stderr, "glGenRenderbuffers %d\n", renderbuffers[i]);
             ctx->addRenderbuffer(renderbuffers[i]);
         }
     }

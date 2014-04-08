@@ -45,21 +45,23 @@ m_mngr(mngr)
 
 EglContext::~EglContext()
 {
-  
-    //
-    // remove the context in the underlying OS layer
-    // 
-    EglOS::destroyContext(m_dpy->nativeType(),m_native);
+    EglOS::makeCurrent(m_dpy->nativeType(), m_read.Ptr(), m_draw.Ptr(), m_native);
 
     //
     // call the client-api to remove the GLES context
-    // 
+    //
     g_eglInfo->getIface(version())->deleteGLESContext(m_glesContext);
 
     if (m_mngr)
     {
         m_mngr->deleteShareGroup(m_native);
     }
+
+    //
+    // remove the context in the underlying OS layer
+    // 
+    EglOS::makeCurrent(m_dpy->nativeType(), 0, 0, 0);
+    EglOS::destroyContext(m_dpy->nativeType(),m_native);
 }
 
 void EglContext::setSurfaces(SurfacePtr read,SurfacePtr draw)
