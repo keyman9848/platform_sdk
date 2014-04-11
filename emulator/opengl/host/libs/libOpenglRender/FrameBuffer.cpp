@@ -101,10 +101,10 @@ void FrameBuffer::finalize() {
     }
 }
 
-bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPostContext)
+InitError FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPostContext)
 {
     if (s_theFrameBuffer != NULL) {
-        return true;
+        return ALREADY_INITIALIZED;
     }
 
     //
@@ -113,7 +113,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     FrameBuffer *fb = new FrameBuffer(width, height, onPost, onPostContext);
     if (!fb) {
         ERR("Failed to create fb\n");
-        return false;
+        return NO_FB;
     }
 
 #ifdef WITH_GLES2
@@ -137,13 +137,13 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     if (fb->m_eglDisplay == EGL_NO_DISPLAY) {
         ERR("Failed to Initialize backend EGL display\n");
         delete fb;
-        return false;
+        return NO_DISPLAY;
     }
 
     if (!s_egl.eglInitialize(fb->m_eglDisplay, &fb->m_caps.eglMajor, &fb->m_caps.eglMinor)) {
         ERR("Failed to eglInitialize\n");
         delete fb;
-        return false;
+        return NO_EGL;
     }
 
     DBG("egl: %d %d\n", fb->m_caps.eglMajor, fb->m_caps.eglMinor);
@@ -188,7 +188,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
                                &fb->m_eglConfig, 1, &n)) {
         ERR("Failed on eglChooseConfig\n");
         delete fb;
-        return false;
+        return NO_PBUFFER_CFG;
     }
 
     GLint glContextAttribs[] = {
@@ -202,7 +202,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     if (fb->m_eglContext == EGL_NO_CONTEXT) {
         printf("Failed to create Context 0x%x\n", s_egl.eglGetError());
         delete fb;
-        return false;
+        return NO_GLES_CTX;
     }
 
     //
@@ -219,7 +219,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     if (fb->m_pbufContext == EGL_NO_CONTEXT) {
         printf("Failed to create Pbuffer Context 0x%x\n", s_egl.eglGetError());
         delete fb;
-        return false;
+        return NO_PBUFFER_CTX;
     }
 
     //
@@ -239,14 +239,14 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     if (fb->m_pbufSurface == EGL_NO_SURFACE) {
         printf("Failed to create pbuf surface for FB 0x%x\n", s_egl.eglGetError());
         delete fb;
-        return false;
+        return NO_PBUFFER_SURF;
     }
 
     // Make the context current
     if (!fb->bind_locked()) {
         ERR("Failed to make current\n");
         delete fb;
-        return false;
+        return FAILED_CURRENT;
     }
 
     //
@@ -285,7 +285,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     if (!fb->m_caps.has_eglimage_texture_2d) {
         ERR("Failed: Missing egl_image related extension(s)\n");
         delete fb;
-        return false;
+        return NO_EGL_IMAGE_EXT;
     }
 
     //
@@ -295,7 +295,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     if (configStatus == INIT_CONFIG_FAILED) {
         ERR("Failed: Initialize set of configs\n");
         delete fb;
-        return false;
+        return NO_PBUFFER_CFG;
     }
 
     //
@@ -319,7 +319,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     //
     if (nGLConfigs == 0) {
         delete fb;
-        return false;
+        return NO_GLES_CFG;
     }
 
     //
@@ -350,7 +350,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
         if (!fb->m_fbImage) {
             ERR("Failed to allocate space for onPost framebuffer image\n");
             delete fb;
-            return false;
+            return NO_FB_IMAGE;
         }
 
         // Create framebuffer of fixed size
@@ -378,7 +378,7 @@ bool FrameBuffer::initialize(int width, int height, OnPostFn onPost, void* onPos
     // Keep the singleton framebuffer pointer
     //
     s_theFrameBuffer = fb;
-    return true;
+    return NO_INIT_ERROR;
 }
 
 FrameBuffer::FrameBuffer(int p_width, int p_height,

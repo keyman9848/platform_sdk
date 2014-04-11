@@ -76,7 +76,7 @@ bool initLibrary(void)
     return true;
 }
 
-bool initOpenGLRenderer(int width, int height, int portNum,
+InitError initOpenGLRenderer(int width, int height, int portNum,
         OnPostFn onPost, void* onPostContext)
 {
 
@@ -84,7 +84,7 @@ bool initOpenGLRenderer(int width, int height, int portNum,
     // Fail if renderer is already initialized
     //
     if (s_renderProc || s_renderThread) {
-        return false;
+        return ALREADY_INITIALIZED;
     }
 
     s_renderPort = portNum;
@@ -94,14 +94,14 @@ bool initOpenGLRenderer(int width, int height, int portNum,
     // initialize the renderer and listen to connections
     // on a thread in the current process.
     //
-    bool inited = FrameBuffer::initialize(width, height, onPost, onPostContext);
-    if (!inited) {
-        return false;
+    InitError inited = FrameBuffer::initialize(width, height, onPost, onPostContext);
+    if (inited != NO_INIT_ERROR) {
+        return inited;
     }
 
     s_renderThread = RenderServer::create(portNum);
     if (!s_renderThread) {
-        return false;
+        return NO_RENDER_SERVER;
     }
 
     s_renderThread->start();
@@ -188,7 +188,7 @@ bool initOpenGLRenderer(int width, int height, int portNum,
     delete dummy;
 #endif
 
-    return true;
+    return NO_INIT_ERROR;
 }
 
 void getHardwareStrings(const char** vendor, const char** renderer, const char** version)

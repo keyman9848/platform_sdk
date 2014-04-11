@@ -20,6 +20,24 @@
 extern "C" {
 #endif
 
+enum InitError {
+    NO_INIT_ERROR = 0,
+    NO_FB,
+    NO_EGL,
+    NO_DISPLAY,
+    NO_GLES_CTX,
+    NO_PBUFFER_CTX,
+    NO_PBUFFER_SURF,
+    NO_PBUFFER_CFG,
+    NO_GLES_CFG,
+    NO_GLES2_CFG,
+    NO_EGL_IMAGE_EXT,
+    NO_FB_IMAGE,
+    FAILED_CURRENT,
+    ALREADY_INITIALIZED,
+    NO_RENDER_SERVER
+};
+
 #include "render_api_platform_types.h"
 
 /* If a function with this signature is passed to initOpenGLRenderer(),
@@ -87,7 +105,7 @@ int setVMIP(char *ip);
 // This function is *NOT* thread safe and should be called first
 // to initialize the renderer after initLibrary().
 //
-bool initOpenGLRenderer(int width, int height, int portNum,
+InitError initOpenGLRenderer(int width, int height, int portNum,
                         OnPostFn onPost, void* onPostContext);
 
 //
