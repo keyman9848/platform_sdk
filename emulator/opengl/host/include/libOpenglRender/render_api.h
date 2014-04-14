@@ -22,20 +22,20 @@ extern "C" {
 
 enum InitError {
     NO_INIT_ERROR = 0,
-    NO_FB,
-    NO_EGL,
-    NO_DISPLAY,
-    NO_GLES_CTX,
-    NO_PBUFFER_CTX,
-    NO_PBUFFER_SURF,
-    NO_PBUFFER_CFG,
-    NO_GLES_CFG,
-    NO_GLES2_CFG,
-    NO_EGL_IMAGE_EXT,
-    NO_FB_IMAGE,
-    FAILED_CURRENT,
-    ALREADY_INITIALIZED,
-    NO_RENDER_SERVER
+    NO_FB,                  // Failed to create Framebuffer
+    NO_EGL,                 // Failed to initialise OpenGL native platform rendering
+    NO_DISPLAY,             // Failed to Initialize backend EGL display
+    NO_GLES_CTX,            // Failed to create Context
+    NO_PBUFFER_CTX,         // Failed to create Pbuffer Contex
+    NO_PBUFFER_SURF,        // Failed to create Pbuffer surface for Framebuffer
+    NO_PBUFFER_CFG,         // Failed to initialize set of configs
+    NO_GLES_CFG,            // Failed to initialize set of GLES configs
+    NO_GLES2_CFG,           // Failed to initialize set of GLES2 configs
+    NO_EGL_IMAGE_EXT,       // Missing egl_image related extension(s)
+    NO_FB_IMAGE,            // Failed to allocate memory for framebuffer image
+    FAILED_CURRENT,         // Failed to make context current
+    NO_RENDER_SERVER,       // Failed to start render server
+    ALREADY_INITIALIZED
 };
 
 #include "render_api_platform_types.h"
