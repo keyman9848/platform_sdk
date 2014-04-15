@@ -533,6 +533,7 @@ HandleType FrameBuffer::createColorBuffer(int p_width, int p_height,
         m_colorbuffers[ret].cb = cb;
         m_colorbuffers[ret].refcount = 0;
     }
+    fprintf(stderr, "ColorBuffer %d\n", m_colorbuffers.size());
     return ret;
 }
 
@@ -556,6 +557,7 @@ HandleType FrameBuffer::createRenderContext(int p_config, HandleType p_share,
         ret = genHandle();
         m_contexts[ret] = rctx;
     }
+    fprintf(stderr, "RenderContext %d\n", m_contexts.size());
     return ret;
 }
 
@@ -569,7 +571,7 @@ HandleType FrameBuffer::createWindowSurface(int p_config, int p_width, int p_hei
         ret = genHandle();
         m_windows[ret] = win;
     }
-
+    fprintf(stderr, "WindowSurface %d\n", m_windows.size());
     return ret;
 }
 
@@ -577,12 +579,14 @@ void FrameBuffer::DestroyRenderContext(HandleType p_context)
 {
     android::Mutex::Autolock mutex(m_lock);
     m_contexts.erase(p_context);
+    fprintf(stderr, "RenderContext %d\n", m_contexts.size());
 }
 
 void FrameBuffer::DestroyWindowSurface(HandleType p_surface)
 {
     android::Mutex::Autolock mutex(m_lock);
     m_windows.erase(p_surface);
+    fprintf(stderr, "WindowSurface %d\n", m_windows.size());
 }
 
 void FrameBuffer::openColorBuffer(HandleType p_colorbuffer)
@@ -594,8 +598,6 @@ void FrameBuffer::openColorBuffer(HandleType p_colorbuffer)
         return;
     }
     (*c).second.refcount++;
-
-    fprintf(stderr, "openColorBuffer %d %d\n", p_colorbuffer, (*c).second.refcount);
 }
 
 void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer)
@@ -606,11 +608,9 @@ void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer)
         // bad colorbuffer handle
         return;
     }
-    if (--(*c).second.refcount == 0) {
+    if (--(*c).second.refcount <= 0) {
         m_colorbuffers.erase(c);
     }
-
-    fprintf(stderr, "closeColorBuffer %d %d\n", p_colorbuffer, (*c).second.refcount);
 }
 
 bool FrameBuffer::flushWindowSurfaceColorBuffer(HandleType p_surface)

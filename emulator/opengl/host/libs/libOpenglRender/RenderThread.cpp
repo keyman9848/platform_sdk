@@ -173,5 +173,20 @@ int RenderThread::Main()
     // flag that this thread has finished execution
     m_finished = true;
 
+    for (std::list<uint32_t>::iterator list_iter = tInfo.m_cctx.begin(); list_iter != tInfo.m_cctx.end(); list_iter++) {
+        FrameBuffer::getFB()->DestroyRenderContext(*list_iter);
+    }
+    tInfo.m_cctx.clear();
+
+    for (std::list<uint32_t>::iterator list_iter = tInfo.m_surf.begin(); list_iter != tInfo.m_surf.end(); list_iter++) {
+        FrameBuffer::getFB()->DestroyWindowSurface(*list_iter);
+    }
+    tInfo.m_surf.clear();
+
+    for (std::list<uint32_t>::iterator list_iter = tInfo.m_cbuf.begin(); list_iter != tInfo.m_cbuf.end(); list_iter++) {
+        FrameBuffer::getFB()->closeColorBuffer(*list_iter);
+    }
+    tInfo.m_cbuf.clear();
+
     return 0;
 }

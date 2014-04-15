@@ -28,7 +28,7 @@
 typedef uint32_t HandleType;
 struct ColorBufferRef {
     ColorBufferPtr cb;
-    uint32_t refcount;  // number of client-side references
+    int32_t refcount;  // number of client-side references
 };
 typedef std::map<HandleType, RenderContextPtr> RenderContextMap;
 typedef std::map<HandleType, WindowSurfacePtr> WindowSurfaceMap;

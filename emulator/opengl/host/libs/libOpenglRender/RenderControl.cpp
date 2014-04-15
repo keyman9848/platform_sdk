@@ -202,7 +202,11 @@ static uint32_t rcCreateWindowSurface(uint32_t config,
         return 0;
     }
 
-    return fb->createWindowSurface(config, width, height);
+    HandleType ret = fb->createWindowSurface(config, width, height);
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo && ret)
+        tInfo->m_surf.push_back(ret);
+    return ret;
 }
 
 static void rcDestroyWindowSurface(uint32_t windowSurface)
@@ -213,6 +217,9 @@ static void rcDestroyWindowSurface(uint32_t windowSurface)
     }
 
     fb->DestroyWindowSurface( windowSurface );
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo)
+        tInfo->m_surf.remove(windowSurface);
 }
 
 static uint32_t rcCreateColorBuffer(uint32_t width,
@@ -233,6 +240,9 @@ static void rcOpenColorBuffer(uint32_t colorbuffer)
         return;
     }
     fb->openColorBuffer( colorbuffer );
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo)
+        tInfo->m_cbuf.push_back(colorbuffer);
 }
 
 static void rcCloseColorBuffer(uint32_t colorbuffer)
@@ -242,6 +252,9 @@ static void rcCloseColorBuffer(uint32_t colorbuffer)
         return;
     }
     fb->closeColorBuffer( colorbuffer );
+    RenderThreadInfo *tInfo = RenderThreadInfo::get();
+    if (tInfo)
+        tInfo->m_cbuf.remove(colorbuffer);
 }
 
 static int rcFlushWindowColorBuffer(uint32_t windowSurface)
