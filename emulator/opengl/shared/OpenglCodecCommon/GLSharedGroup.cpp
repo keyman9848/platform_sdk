@@ -233,8 +233,6 @@ GLSharedGroup::GLSharedGroup() :
 
 GLSharedGroup::~GLSharedGroup()
 {
-    m_buffers.clear();
-    m_programs.clear();
     clearObjectMap(m_buffers);
     clearObjectMap(m_programs);
     clearObjectMap(m_shaders);

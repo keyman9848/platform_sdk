@@ -90,6 +90,7 @@ static const char *getGLES2ExtensionString(EGLDisplay p_dpy)
 void FrameBuffer::finalize() {
     if(s_theFrameBuffer){
         s_theFrameBuffer->removeSubWindow();
+        fprintf(stderr, "ColorBuffers %d\n", s_theFrameBuffer->m_colorbuffers.size());
         s_theFrameBuffer->m_colorbuffers.clear();
         s_theFrameBuffer->m_windows.clear();
         s_theFrameBuffer->m_contexts.clear();
@@ -593,6 +594,8 @@ void FrameBuffer::openColorBuffer(HandleType p_colorbuffer)
         return;
     }
     (*c).second.refcount++;
+
+    fprintf(stderr, "openColorBuffer %d %d\n", p_colorbuffer, (*c).second.refcount);
 }
 
 void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer)
@@ -606,6 +609,8 @@ void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer)
     if (--(*c).second.refcount == 0) {
         m_colorbuffers.erase(c);
     }
+
+    fprintf(stderr, "closeColorBuffer %d %d\n", p_colorbuffer, (*c).second.refcount);
 }
 
 bool FrameBuffer::flushWindowSurfaceColorBuffer(HandleType p_surface)

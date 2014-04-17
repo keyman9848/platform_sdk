@@ -11,7 +11,6 @@ ifdef GL_DUMP
 host_common_debug_CFLAGS += -DDEBUG_PRINTOUT
 endif
 
-
 ### host library ##########################################
 $(call emugl-begin-host-static-library,libGLESv2_dec)
 $(call emugl-import, libOpenglCodecCommon libOpenglOsUtils)
@@ -41,7 +40,7 @@ $(call emugl-export,CFLAGS,$(host_common_debug_CFLAGS) -m64)
 LOCAL_SRC_FILES := GL2Decoder.cpp
 
 ifeq ($(HOST_OS),windows)
-LOCAL_CC = /usr/bin/amd64-mingw32msvc-gcc 
+LOCAL_CC = /usr/bin/amd64-mingw32msvc-gcc
 LOCAL_CXX = /usr/bin/amd64-mingw32msvc-g++
 endif
 

@@ -15,7 +15,7 @@
 */
 
 #include "GLESv2Context.h"
-
+#include <stdio.h>
 
 
 void GLESv2Context::init() {
@@ -36,11 +36,62 @@ void GLESv2Context::init() {
     m_initialized = true;
 }
 
-GLESv2Context::GLESv2Context():GLEScontext(), m_att0Array(NULL), m_att0ArrayLength(0), m_att0NeedsDisable(false){};
+GLESv2Context::GLESv2Context():
+    GLEScontext(),
+    m_att0Array(NULL),
+    m_att0ArrayLength(0),
+    m_att0NeedsDisable(false)
+{
+
+};
 
 GLESv2Context::~GLESv2Context()
 {
     delete[] m_att0Array;
+
+    for (std::list<GLuint>::iterator it = m_framebuffers.begin(); it != m_framebuffers.end(); it++) {
+        const GLuint globalBufferName = shareGroup()->getGlobalName(FRAMEBUFFER, *it);
+        shareGroup()->deleteName(FRAMEBUFFER, *it);
+        dispatcher().glDeleteFramebuffersEXT(1, &globalBufferName);
+    }
+
+    for (std::list<GLuint>::iterator it = m_renderbuffers.begin(); it != m_renderbuffers.end(); it++) {
+        const GLuint globalBufferName = shareGroup()->getGlobalName(RENDERBUFFER, *it);
+        shareGroup()->deleteName(RENDERBUFFER, *it);
+        dispatcher().glDeleteRenderbuffersEXT(1, &globalBufferName);
+    }
+
+    for (std::list<GLuint>::iterator it = m_buffers.begin(); it != m_buffers.end(); it++) {
+        const GLuint globalBufferName = shareGroup()->getGlobalName(VERTEXBUFFER, *it);
+        shareGroup()->deleteName(VERTEXBUFFER, *it);
+        dispatcher().glDeleteBuffers(1, &globalBufferName);
+    }
+
+    dispatcher().glBindTexture(GL_TEXTURE_2D, 0);
+
+    for (std::list<GLuint>::iterator it = m_textures.begin(); it != m_textures.end(); it++) {
+        const GLuint globalTextureName = shareGroup()->getGlobalName(TEXTURE, *it);
+        //fprintf(stderr, "GLESv2Context delete texture %d %d\n", *it, globalTextureName);
+        shareGroup()->deleteName(TEXTURE, *it);
+        dispatcher().glDeleteTextures(1, &globalTextureName);
+    }
+
+    dispatcher().glUseProgram(0);
+
+    for (std::list<GLuint>::iterator it = m_shaders.begin(); it != m_shaders.end(); it++) {
+        const GLuint globalShaderName = shareGroup()->getGlobalName(SHADER, *it);
+        //fprintf(stderr, "GLESv2Context delete shader %d %d\n", *it, globalShaderName);
+        shareGroup()->deleteName(SHADER,*it);
+        dispatcher().glDeleteShader(globalShaderName);
+    }
+
+    for (std::list<GLuint>::iterator it = m_programs.begin(); it != m_programs.end(); it++) {
+        const GLuint globalProgramName = shareGroup()->getGlobalName(SHADER, *it);
+        //fprintf(stderr, "GLESv2Context delete program %d %d\n", *it, globalProgramName);
+        shareGroup()->deleteName(SHADER, *it);
+        dispatcher().glDeleteProgram(globalProgramName);
+    }
+
 }
 
 void GLESv2Context::setAttribute0value(float x, float y, float z, float w)

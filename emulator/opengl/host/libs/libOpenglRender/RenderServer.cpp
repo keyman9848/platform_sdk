@@ -24,6 +24,7 @@
 #include "FrameBuffer.h"
 #include "osProcess.h"
 #include <set>
+#include "stdio.h"
 
 typedef std::set<RenderThread *> RenderThreadsSet;
 
@@ -145,6 +146,27 @@ restart_renderserver_main:
             unsigned int tcpcli_command;
 #define PING_TIMEOUT 5
 
+            //
+            // remove from the threads list threads which are
+            // no longer running
+            //
+            for (RenderThreadsSet::iterator n,t = threads.begin();
+                 t != threads.end();
+                 t = n) {
+                // first find next iterator
+                n = t;
+                n++;
+
+                // delete and erase the current iterator
+                // if thread is no longer running
+                if ((*t)->isFinished()) {
+                    delete (*t);
+                    threads.erase(t);
+                }
+            }
+
+            //fprintf(stderr, "Clients %d\n", threads.size());
+
             if (!tcpcli_main->waitForDatas(PING_TIMEOUT)) {
                 int ctime = time(NULL);
 
@@ -237,25 +259,6 @@ restart_renderserver_main:
             fprintf(stderr,"Failed to start RenderThread\n");
             delete rt;
             rt = NULL;
-        }
-
-        //
-        // remove from the threads list threads which are
-        // no longer running
-        //
-        for (RenderThreadsSet::iterator n,t = threads.begin();
-             t != threads.end();
-             t = n) {
-            // first find next iterator
-            n = t;
-            n++;
-
-            // delete and erase the current iterator
-            // if thread is no longer running
-            if ((*t)->isFinished()) {
-                delete (*t);
-                threads.erase(t);
-            }
         }
 
         // if the thread has been created and started, insert it to the list

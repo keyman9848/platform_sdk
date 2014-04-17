@@ -493,18 +493,19 @@ GL_API void GL_APIENTRY  glCullFace( GLenum mode) {
 }
 
 GL_API void GL_APIENTRY  glDeleteBuffers( GLsizei n, const GLuint *buffers) {
-    GET_CTX()
+    GET_CTX_CM()
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i < n; i++){
            ctx->shareGroup()->deleteName(VERTEXBUFFER,buffers[i]);
            ctx->unbindBuffer(buffers[i]);
+           ctx->removeBuffer(buffers[i]);
         }
     }
 }
 
 GL_API void GL_APIENTRY  glDeleteTextures( GLsizei n, const GLuint *textures) {
-    GET_CTX()
+    GET_CTX_CM()
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i < n; i++){
@@ -518,7 +519,8 @@ GL_API void GL_APIENTRY  glDeleteTextures( GLsizei n, const GLuint *textures) {
                     ctx->dispatcher().glDeleteTextures(1,&globalTextureName);
                 }
                 ctx->shareGroup()->deleteName(TEXTURE,textures[i]);
-                
+                ctx->removeTexture(textures[i]);
+
                 if(ctx->getBindedTexture(GL_TEXTURE_2D) == textures[i])
                     ctx->setBindedTexture(GL_TEXTURE_2D,0);
                 if (ctx->getBindedTexture(GL_TEXTURE_CUBE_MAP) == textures[i])
@@ -690,22 +692,24 @@ GL_API void GL_APIENTRY  glFrustumx( GLfixed left, GLfixed right, GLfixed bottom
 }
 
 GL_API void GL_APIENTRY  glGenBuffers( GLsizei n, GLuint *buffers) {
-    GET_CTX()
+    GET_CTX_CM()
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i<n ;i++) {
             buffers[i] = ctx->shareGroup()->genName(VERTEXBUFFER, 0, true);
             //generating vbo object related to this buffer name
             ctx->shareGroup()->setObjectData(VERTEXBUFFER,buffers[i],ObjectDataPtr(new GLESbuffer()));
+            ctx->addBuffer(buffers[i]);
         }
     }
 }
 
 GL_API void GL_APIENTRY  glGenTextures( GLsizei n, GLuint *textures) {
-    GET_CTX();
+    GET_CTX_CM();
     if(ctx->shareGroup().Ptr()) {
         for(int i=0; i<n ;i++) {
             textures[i] = ctx->shareGroup()->genName(TEXTURE, 0, true);
+            ctx->addTexture(textures[i]);
         }
     }
 }
@@ -1008,7 +1012,7 @@ GL_API void GL_APIENTRY  glGetMaterialxv( GLenum face, GLenum pname, GLfixed *pa
 }
 
 GL_API void GL_APIENTRY  glGetPointerv( GLenum pname, void **params) {
-    GET_CTX()
+    GET_CTX_CM()
     const GLESpointer* p = ctx->getPointer(pname);
     if(p) {
         if(p->isVBO())
@@ -1804,16 +1808,17 @@ GL_API void GLAPIENTRY glBindRenderbufferOES(GLenum target, GLuint renderbuffer)
 }
 
 GL_API void GLAPIENTRY glDeleteRenderbuffersOES(GLsizei n, const GLuint *renderbuffers) {
-    GET_CTX()
+    GET_CTX_CM()
     SET_ERROR_IF(!ctx->getCaps()->GL_EXT_FRAMEBUFFER_OBJECT,GL_INVALID_OPERATION);
     for (int i=0;i<n;++i) {
         GLuint globalBufferName = ctx->shareGroup()->getGlobalName(RENDERBUFFER,renderbuffers[i]);
         ctx->dispatcher().glDeleteRenderbuffersEXT(1,&globalBufferName);
+        ctx->removeRenderbuffer(renderbuffers[i]);
     }
 }
 
 GL_API void GLAPIENTRY glGenRenderbuffersOES(GLsizei n, GLuint *renderbuffers) {
-    GET_CTX()
+    GET_CTX_CM()
     SET_ERROR_IF(!ctx->getCaps()->GL_EXT_FRAMEBUFFER_OBJECT,GL_INVALID_OPERATION);
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if(ctx->shareGroup().Ptr()) {
@@ -1822,6 +1827,7 @@ GL_API void GLAPIENTRY glGenRenderbuffersOES(GLsizei n, GLuint *renderbuffers) {
             ctx->shareGroup()->setObjectData(RENDERBUFFER,
                                              renderbuffers[i],
                                          ObjectDataPtr(new RenderbufferData()));
+            ctx->addRenderbuffer(renderbuffers[i]);
         }
     }
 }
@@ -1944,16 +1950,17 @@ GL_API void GLAPIENTRY glBindFramebufferOES(GLenum target, GLuint framebuffer) {
 }
 
 GL_API void GLAPIENTRY glDeleteFramebuffersOES(GLsizei n, const GLuint *framebuffers) {
-    GET_CTX()
+    GET_CTX_CM()
     SET_ERROR_IF(!ctx->getCaps()->GL_EXT_FRAMEBUFFER_OBJECT,GL_INVALID_OPERATION);
     for (int i=0;i<n;++i) {
         GLuint globalBufferName = ctx->shareGroup()->getGlobalName(FRAMEBUFFER,framebuffers[i]);
         ctx->dispatcher().glDeleteFramebuffersEXT(1,&globalBufferName);
+        ctx->removeFramebuffer(framebuffers[i]);
     }
 }
 
 GL_API void GLAPIENTRY glGenFramebuffersOES(GLsizei n, GLuint *framebuffers) {
-    GET_CTX()
+    GET_CTX_CM()
     SET_ERROR_IF(!ctx->getCaps()->GL_EXT_FRAMEBUFFER_OBJECT,GL_INVALID_OPERATION);
     SET_ERROR_IF(n<0,GL_INVALID_VALUE);
     if (ctx->shareGroup().Ptr()) {
@@ -1961,6 +1968,7 @@ GL_API void GLAPIENTRY glGenFramebuffersOES(GLsizei n, GLuint *framebuffers) {
             framebuffers[i] = ctx->shareGroup()->genName(FRAMEBUFFER, 0, true);
             ctx->shareGroup()->setObjectData(FRAMEBUFFER, framebuffers[i],
                                              ObjectDataPtr(new FramebufferData(framebuffers[i])));
+            ctx->addFramebuffer(framebuffers[i]);
         }
     }
 }

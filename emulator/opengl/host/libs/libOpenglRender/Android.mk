@@ -84,7 +84,7 @@ LOCAL_STATIC_LIBRARIES += lib64utils lib64log
 $(call emugl-export,CFLAGS,$(host_common_CFLAGS) -m64)
 
 ifeq ($(HOST_OS),windows)
-LOCAL_CC = /usr/bin/amd64-mingw32msvc-gcc 
+LOCAL_CC = /usr/bin/amd64-mingw32msvc-gcc
 LOCAL_CXX = /usr/bin/amd64-mingw32msvc-g++
 LOCAL_LDLIBS += -L/usr/amd64-mingw32msvc/lib -lmsvcrt
 LOCAL_NO_DEFAULT_LD_DIRS = 1

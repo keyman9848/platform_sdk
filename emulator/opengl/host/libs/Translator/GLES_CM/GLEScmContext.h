@@ -24,7 +24,7 @@
 #include <vector>
 #include <string>
 #include <utils/threads.h>
-
+#include <list>
 
 typedef std::map<GLfloat,std::vector<int> > PointSizeIndices;
 
@@ -43,6 +43,15 @@ public:
     void drawPointsElems(GLESConversionArrays& arrs,GLsizei count,GLenum type,const GLvoid* indices);
     virtual const GLESpointer* getPointer(GLenum arrType);
     int  getMaxTexUnits();
+
+    void addTexture(GLuint texture) {m_textures.push_back(texture);}
+    void removeTexture(GLuint texture) {m_textures.remove(texture);}
+    void addBuffer(GLuint buffer) {m_buffers.push_back(buffer);}
+    void removeBuffer(GLuint buffer) {m_buffers.remove(buffer);}
+    void addFramebuffer(GLuint framebuffers) {m_framebuffers.push_back(framebuffers);}
+    void removeFramebuffer(GLuint framebuffers) {m_framebuffers.remove(framebuffers);}
+    void addRenderbuffer(GLuint renderbuffers) {m_renderbuffers.push_back(renderbuffers);}
+    void removeRenderbuffer(GLuint renderbuffers) {m_renderbuffers.remove(renderbuffers);}
 
     virtual bool glGetIntegerv(GLenum pname, GLint *params);
     virtual bool glGetBooleanv(GLenum pname, GLboolean *params);
@@ -63,6 +72,11 @@ private:
     GLESpointer*          m_texCoords;
     int                   m_pointsIndex;
     unsigned int          m_clientActiveTexture;
+
+    std::list<GLuint> m_textures;
+    std::list<GLuint> m_buffers;
+    std::list<GLuint> m_framebuffers;
+    std::list<GLuint> m_renderbuffers;
 };
 
 #endif

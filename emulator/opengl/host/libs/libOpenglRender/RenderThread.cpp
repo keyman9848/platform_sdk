@@ -150,6 +150,11 @@ int RenderThread::Main()
         fclose(dumpFP);
     }
 
+    for (std::list<uint32_t>::iterator list_iter = tInfo.m_cctx.begin(); list_iter != tInfo.m_cctx.end(); list_iter++) {
+         FrameBuffer::getFB()->DestroyRenderContext(*list_iter);
+    }
+    tInfo.m_cctx.clear();
+
     //
     // Release references to the current thread's context/surfaces if any
     //
@@ -167,11 +172,6 @@ int RenderThread::Main()
     //
     // flag that this thread has finished execution
     m_finished = true;
-
-    for (std::list<uint32_t>::iterator list_iter = tInfo.m_cctx.begin(); list_iter != tInfo.m_cctx.end(); list_iter++) {
-        FrameBuffer::getFB()->DestroyRenderContext(*list_iter);
-    }
-    tInfo.m_cctx.clear();
 
     return 0;
 }
