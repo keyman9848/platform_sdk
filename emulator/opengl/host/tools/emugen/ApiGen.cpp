@@ -240,7 +240,7 @@ int ApiGen::genEntryPoints(const std::string & filename, SideType side)
         //param check
         if (shouldCallWithContext) {
             for (size_t j=0; j<e->vars().size(); j++) {
-                if (e->vars()[j].paramCheckExpression() != "")
+                if (e->vars()[j].paramCheckExpression() != "") 
                     fprintf(fp, "\t%s\n", e->vars()[j].paramCheckExpression().c_str());
             }
         }
@@ -760,8 +760,6 @@ int ApiGen::genDecoderImpl(const std::string &filename)
     fprintf(fp, "\n\n#include <string.h>\n");
     fprintf(fp, "#include \"%s_opcodes.h\"\n\n", m_basename.c_str());
     fprintf(fp, "#include \"%s_dec.h\"\n\n\n", m_basename.c_str());
-    fprintf(fp, "#include <pthread.h>\n");
-    fprintf(fp, "#include <unistd.h>\n");
     fprintf(fp, "#include <stdio.h>\n\n");
     fprintf(fp, "typedef unsigned int tsize_t; // Target \"size_t\", which is 32-bit for now. It may or may not be the same as host's size_t when emugen is compiled.\n\n");
 
@@ -824,8 +822,7 @@ int ApiGen::genDecoderImpl(const std::string &filename)
                 }
             } else if (pass == PASS_DebugPrint) {
                 fprintf(fp, "#ifdef DEBUG_PRINTOUT\n");
-                fprintf(fp, "\t\t\tfprintf(stderr,\"tid:%%u %s: %s(%s)\\n\", pthread_self()",
-                        m_basename.c_str(), e->name().c_str(), printString.c_str());
+                fprintf(fp, "\t\t\tfprintf(stderr,\"%s: %s(%s)\\n\"", m_basename.c_str(), e->name().c_str(), printString.c_str());
                 if (e->vars().size() > 0 && !e->vars()[0].isVoid()) fprintf(fp, ",");
             }
 
