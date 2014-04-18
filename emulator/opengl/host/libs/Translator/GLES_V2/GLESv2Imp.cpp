@@ -177,7 +177,7 @@ GL_APICALL void  GL_APIENTRY glAttachShader(GLuint program, GLuint shader){
         ObjectDataPtr programData = ctx->shareGroup()->getObjectData(SHADER,program);
         ObjectDataPtr shaderData = ctx->shareGroup()->getObjectData(SHADER,shader);
         SET_ERROR_IF(!shaderData.Ptr() || !programData.Ptr() ,GL_INVALID_OPERATION);
-        SET_ERROR_IF(!(shaderData.Ptr()->getDataType() ==SHADER_DATA) || 
+        SET_ERROR_IF(!(shaderData.Ptr()->getDataType() ==SHADER_DATA) ||
                      !(programData.Ptr()->getDataType()==PROGRAM_DATA) ,GL_INVALID_OPERATION);
 
         GLenum shaderType = ((ShaderParser*)shaderData.Ptr())->getType();
@@ -266,7 +266,7 @@ GL_APICALL void  GL_APIENTRY glBindTexture(GLenum target, GLuint texture){
 
     //for handling default texture (0)
     ObjectLocalName localTexName = TextureLocalName(target,texture);
-    
+
     GLuint globalTextureName = localTexName;
     if(ctx->shareGroup().Ptr()){
         globalTextureName = ctx->shareGroup()->getGlobalName(TEXTURE,localTexName);
@@ -366,6 +366,8 @@ GL_APICALL void  GL_APIENTRY glColorMask(GLboolean red, GLboolean green, GLboole
 GL_APICALL void  GL_APIENTRY glCompileShader(GLuint shader){
     GET_CTX();
     if(ctx->shareGroup().Ptr()) {
+        fprintf(stderr,"%s:%s:%d shader:%d\n", __FILE__, __FUNCTION__, __LINE__,
+                shader);
         const GLuint globalShaderName = ctx->shareGroup()->getGlobalName(SHADER,shader);
         SET_ERROR_IF(globalShaderName==0, GL_INVALID_VALUE);
         ObjectDataPtr objData = ctx->shareGroup()->getObjectData(SHADER,shader);
@@ -504,7 +506,7 @@ GL_APICALL void  GL_APIENTRY glDeleteTextures(GLsizei n, const GLuint* textures)
                 }
                 ctx->shareGroup()->deleteName(TEXTURE,textures[i]);
                 ctx->removeTexture(textures[i]);
- 
+
                 if (ctx->getBindedTexture(GL_TEXTURE_2D) == textures[i])
                     ctx->setBindedTexture(GL_TEXTURE_2D,0);
                 if (ctx->getBindedTexture(GL_TEXTURE_CUBE_MAP) == textures[i])
@@ -533,7 +535,8 @@ GL_APICALL void  GL_APIENTRY glDeleteShader(GLuint shader){
         ctx->shareGroup()->deleteName(SHADER,shader);
         ctx->dispatcher().glDeleteShader(globalShaderName);
         ctx->removeShader(shader);
-    }       
+    }
+
 }
 
 GL_APICALL void  GL_APIENTRY glDepthFunc(GLenum func){
@@ -628,7 +631,7 @@ GL_APICALL void  GL_APIENTRY glDrawElements(GLenum mode, GLsizei count, GLenum t
 
     int maxIndex = ctx->findMaxIndex(count, type, indices);
     ctx->validateAtt0PreDraw(maxIndex);
-    
+
     //See glDrawArrays
     if (mode==GL_POINTS) {
         ctx->dispatcher().glEnable(GL_POINT_SPRITE);
@@ -743,7 +746,7 @@ GL_APICALL void  GL_APIENTRY glFramebufferTexture2D(GLenum target, GLenum attach
     ObjectDataPtr fbObj = ctx->shareGroup()->getObjectData(FRAMEBUFFER,fbName);
     if (fbObj.Ptr() != NULL) {
         FramebufferData *fbData = (FramebufferData *)fbObj.Ptr();
-        fbData->setAttachment(attachment, textarget, 
+        fbData->setAttachment(attachment, textarget,
                               texture, ObjectDataPtr(NULL));
     }
 }
@@ -937,8 +940,8 @@ GL_APICALL void  GL_APIENTRY glGetFloatv(GLenum pname, GLfloat* params){
         *params = (GLfloat)i;
         break;
     case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
-        *params = (GLfloat)getCompressedFormats(NULL); 
-        break;    
+        *params = (GLfloat)getCompressedFormats(NULL);
+        break;
     case GL_COMPRESSED_TEXTURE_FORMATS:
         {
             int nparams = getCompressedFormats(NULL);
@@ -978,7 +981,7 @@ GL_APICALL void  GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params){
     {
         return;
     }
-  
+
     bool es2 = ctx->getCaps()->GL_ARB_ES2_COMPATIBILITY;
     GLint i;
 
@@ -1003,8 +1006,8 @@ GL_APICALL void  GL_APIENTRY glGetIntegerv(GLenum pname, GLint* params){
         break;
 
     case GL_NUM_COMPRESSED_TEXTURE_FORMATS:
-        *params = getCompressedFormats(NULL); 
-        break;    
+        *params = getCompressedFormats(NULL);
+        break;
     case GL_COMPRESSED_TEXTURE_FORMATS:
         getCompressedFormats(params);
         break;
@@ -1185,7 +1188,7 @@ GL_APICALL void  GL_APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint*
                 SET_ERROR_IF(!objData.Ptr() ,GL_INVALID_OPERATION);
                 SET_ERROR_IF(objData.Ptr()->getDataType()!=PROGRAM_DATA,GL_INVALID_OPERATION);
                 ProgramData* programData = (ProgramData*)objData.Ptr();
-                if (programData->getLinkStatus()==GL_TRUE) 
+                if (programData->getLinkStatus()==GL_TRUE)
                     ctx->dispatcher().glGetProgramiv(globalProgramName,pname,params);
                 else
                     params[0] = GL_FALSE;
@@ -1200,7 +1203,7 @@ GL_APICALL void  GL_APIENTRY glGetProgramiv(GLuint program, GLenum pname, GLint*
                 GLint logLength = strlen(programData->getInfoLog());
                 params[0] = (logLength>0) ? logLength+1 : 0;
             }
-            break;   
+            break;
         default:
             ctx->dispatcher().glGetProgramiv(globalProgramName,pname,params);
         }
@@ -1226,7 +1229,7 @@ GL_APICALL void  GL_APIENTRY glGetProgramInfoLog(GLuint program, GLsizei bufsize
 
         GLsizei logLength;
         logLength = strlen(programData->getInfoLog());
-        
+
         GLsizei returnLength=0;
         if (infolog) {
             returnLength = bufsize-1 < logLength ? bufsize-1 : logLength;
@@ -1281,7 +1284,7 @@ GL_APICALL void  GL_APIENTRY glGetShaderInfoLog(GLuint shader, GLsizei bufsize, 
 
         GLsizei logLength;
         logLength = strlen(sp->getInfoLog());
-        
+
         GLsizei returnLength=0;
         if (infolog) {
             returnLength = bufsize-1 <logLength ? bufsize-1 : logLength;
@@ -1613,7 +1616,7 @@ GL_APICALL void  GL_APIENTRY glLinkProgram(GLuint program){
             }
         }
         programData->setLinkStatus(linkStatus);
-        
+
         GLsizei infoLogLength=0;
         GLchar* infoLog;
         ctx->dispatcher().glGetProgramiv(globalProgramName,GL_INFO_LOG_LENGTH,&infoLogLength);
@@ -1710,6 +1713,10 @@ GL_APICALL void  GL_APIENTRY glShaderBinary(GLsizei n, const GLuint* shaders, GL
         for(int i=0; i < n ; i++){
             const GLuint globalShaderName = ctx->shareGroup()->getGlobalName(SHADER,shaders[i]);
             SET_ERROR_IF(globalShaderName == 0,GL_INVALID_VALUE);
+            fprintf(stderr,"%s:%s:%d globalShaderName:%d binaryformat:%d, length:%d\n",
+                    __FILE__, __FUNCTION__, __LINE__,
+                    globalShaderName,
+                    binaryformat, length);
             ctx->dispatcher().glShaderBinary(1,&globalShaderName,binaryformat,binary,length);
         }
     }
@@ -1726,6 +1733,10 @@ GL_APICALL void  GL_APIENTRY glShaderSource(GLuint shader, GLsizei count, const 
             SET_ERROR_IF(objData.Ptr()->getDataType()!=SHADER_DATA,GL_INVALID_OPERATION);
             ShaderParser* sp = (ShaderParser*)objData.Ptr();
             sp->setSrc(ctx->glslVersion(),count,string,length);
+            fprintf(stderr,"%s:%s:%d shader:%d globalShaderName:%d count:%d, len:%d\n",
+                    __FILE__, __FUNCTION__, __LINE__,
+                    shader, globalShaderName,
+                    count, *length);
             ctx->dispatcher().glShaderSource(globalShaderName,1,sp->parsedLines(),NULL);
     }
 }
@@ -2103,7 +2114,7 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target
         // underlying texture of the img
         GLuint prevFB = ctx->getFramebufferBinding();
         if (prevFB != rbData->attachedFB) {
-            ctx->dispatcher().glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 
+            ctx->dispatcher().glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,
                                                    rbData->attachedFB);
         }
         ctx->dispatcher().glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,
@@ -2111,7 +2122,7 @@ GL_APICALL void GL_APIENTRY glEGLImageTargetRenderbufferStorageOES(GLenum target
                                                     GL_TEXTURE_2D,
                                                     img->globalTexName,0);
         if (prevFB != rbData->attachedFB) {
-            ctx->dispatcher().glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 
+            ctx->dispatcher().glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,
                                                    prevFB);
         }
     }
