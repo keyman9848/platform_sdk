@@ -239,7 +239,7 @@ bool ColorBuffer::bindToTexture()
 {
     if (m_eglImage) {
         RenderThreadInfo *tInfo = RenderThreadInfo::get();
-        if (tInfo->currContext.Ptr()) {
+        if (tInfo && tInfo->currContext.Ptr()) {
 #ifdef WITH_GLES2
             if (tInfo->currContext->isGL2()) {
                 s_gl2.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, m_eglImage);

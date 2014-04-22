@@ -90,7 +90,6 @@ static const char *getGLES2ExtensionString(EGLDisplay p_dpy)
 void FrameBuffer::finalize() {
     if(s_theFrameBuffer){
         s_theFrameBuffer->removeSubWindow();
-        fprintf(stderr, "ColorBuffers %d\n", s_theFrameBuffer->m_colorbuffers.size());
         s_theFrameBuffer->m_colorbuffers.clear();
         s_theFrameBuffer->m_windows.clear();
         s_theFrameBuffer->m_contexts.clear();
@@ -1254,4 +1253,3 @@ void FrameBuffer::cameraEffect(int duration)
 
     free(greyImg);
 }
-
