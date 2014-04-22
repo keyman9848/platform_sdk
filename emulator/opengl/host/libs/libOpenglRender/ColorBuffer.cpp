@@ -152,7 +152,7 @@ void ColorBuffer::subUpdate(int x, int y, int width, int height, GLenum p_format
 bool ColorBuffer::blitFromCurrentReadBuffer()
 {
     RenderThreadInfo *tInfo = RenderThreadInfo::get();
-    if (!tInfo->currContext.Ptr()) {
+    if (!tinfo || !tInfo->currContext.Ptr()) {
         // no Current context
         return false;
     }
@@ -260,7 +260,7 @@ bool ColorBuffer::bindToRenderbuffer()
 {
     if (m_eglImage) {
         RenderThreadInfo *tInfo = RenderThreadInfo::get();
-        if (tInfo->currContext.Ptr()) {
+        if (tinfo && tInfo->currContext.Ptr()) {
 #ifdef WITH_GLES2
             if (tInfo->currContext->isGL2()) {
                 s_gl2.glEGLImageTargetRenderbufferStorageOES(GL_RENDERBUFFER_OES, m_eglImage);
