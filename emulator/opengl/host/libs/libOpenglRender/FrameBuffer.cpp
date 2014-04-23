@@ -525,12 +525,12 @@ HandleType FrameBuffer::createColorBuffer(int p_width, int p_height,
 {
     android::Mutex::Autolock mutex(m_lock);
     HandleType ret = 0;
-
+    fprintf(stderr, "ColorBuffer %d\n", m_colorbuffers.size());
     ColorBufferPtr cb( ColorBuffer::create(p_width, p_height, p_internalFormat) );
     if (cb.Ptr() != NULL) {
         ret = genHandle();
         m_colorbuffers[ret].cb = cb;
-        m_colorbuffers[ret].refcount = 0;
+        m_colorbuffers[ret].refcount = 1;
     }
     return ret;
 }
@@ -594,7 +594,7 @@ void FrameBuffer::openColorBuffer(HandleType p_colorbuffer)
     (*c).second.refcount++;
 }
 
-void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer)
+void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer, bool force)
 {
     android::Mutex::Autolock mutex(m_lock);
     ColorBufferMap::iterator c(m_colorbuffers.find(p_colorbuffer));
@@ -602,8 +602,13 @@ void FrameBuffer::closeColorBuffer(HandleType p_colorbuffer)
         // bad colorbuffer handle
         return;
     }
-    if (--(*c).second.refcount <= 0) {
+    if(force) {
+        (*c).second.refcount = 0;
         m_colorbuffers.erase(c);
+    } else {
+        if (--(*c).second.refcount <= 0) {
+            m_colorbuffers.erase(c);
+        }
     }
 }
 

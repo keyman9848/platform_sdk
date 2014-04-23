@@ -184,7 +184,7 @@ int RenderThread::Main()
     tInfo.m_surf.clear();
 
     for (std::list<uint32_t>::iterator list_iter = tInfo.m_cbuf.begin(); list_iter != tInfo.m_cbuf.end(); list_iter++) {
-        FrameBuffer::getFB()->closeColorBuffer(*list_iter);
+        FrameBuffer::getFB()->closeColorBuffer(*list_iter, true);
     }
     tInfo.m_cbuf.clear();
 

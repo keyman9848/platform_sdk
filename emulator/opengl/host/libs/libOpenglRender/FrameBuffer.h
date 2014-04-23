@@ -73,7 +73,7 @@ class FrameBuffer
     void DestroyRenderContext(HandleType p_context);
     void DestroyWindowSurface(HandleType p_surface);
     void openColorBuffer(HandleType p_colorbuffer);
-    void closeColorBuffer(HandleType p_colorbuffer);
+    void closeColorBuffer(HandleType p_colorbuffer, bool force=false);
 
     bool bindContext(HandleType p_context, HandleType p_drawSurface, HandleType p_readSurface);
     bool setWindowSurfaceColorBuffer(HandleType p_surface, HandleType p_colorbuffer);
