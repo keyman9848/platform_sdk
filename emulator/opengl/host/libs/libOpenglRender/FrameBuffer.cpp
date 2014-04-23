@@ -530,7 +530,7 @@ HandleType FrameBuffer::createColorBuffer(int p_width, int p_height,
     if (cb.Ptr() != NULL) {
         ret = genHandle();
         m_colorbuffers[ret].cb = cb;
-        m_colorbuffers[ret].refcount = 0;
+        m_colorbuffers[ret].refcount = 1;
     }
     return ret;
 }
